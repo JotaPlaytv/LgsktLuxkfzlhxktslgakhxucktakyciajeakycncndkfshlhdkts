@@ -1,28 +1,25 @@
-const CACHE_NAME = 'iptv-app-v1';
-const FILES_TO_CACHE = [
-  './index.html',
-  './manifest.json',
-  // se tiver outros arquivos (css, imagens) adicione aqui
-];
-
-self.addEventListener('install', (evt) => {
-  evt.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
-  );
-  self.skipWaiting();
+// sw.js - Versão sem cache (sempre atualiza)
+self.addEventListener('install', event => {
+self.skipWaiting();
 });
 
-self.addEventListener('activate', (evt) => {
-  evt.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.map(k => { if (k !== CACHE_NAME) return caches.delete(k); })
-    ))
-  );
-  self.clients.claim();
+self.addEventListener('activate', event => {
+event.waitUntil(
+caches.keys().then(cacheNames => {
+return Promise.all(
+cacheNames.map(cacheName => {
+return caches.delete(cacheName);
+})
+);
+})
+);
+return self.clients.claim();
 });
 
-self.addEventListener('fetch', (evt) => {
-  evt.respondWith(
-    caches.match(evt.request).then(resp => resp || fetch(evt.request))
-  );
+self.addEventListener('fetch', event => {
+event.respondWith(
+fetch(event.request).catch(() => {
+return caches.match(event.request);
+})
+);
 });
