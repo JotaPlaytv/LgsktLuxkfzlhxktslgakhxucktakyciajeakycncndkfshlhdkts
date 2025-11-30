@@ -1,276 +1,164 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestor IPTV</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calendário IPTV — Popup</title>
+  <style>
+    body{font-family:system-ui; margin:0; background:#0f1724; color:#e6eef6}
+    .calendar{max-width:800px;margin:20px auto;padding:10px}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .cell{min-height:80px;border:1px solid #ffffff10;border-radius:8px;padding:6px;cursor:pointer;position:relative;transition:0.15s}
+    .cell:hover{background:#ffffff05}
+    .cell .date{font-size:14px;font-weight:600}
+    .count{position:absolute;right:6px;top:6px;background:#06b6d4;color:#001;padding:2px 6px;border-radius:20px;font-size:10px}
 
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #0d1117;
-        color: #e6e6e6;
-        margin: 0;
-        padding: 0;
-    }
+    .modal-bg{display:none;position:fixed;inset:0;background:#0008;backdrop-filter:blur(3px);align-items:center;justify-content:center;animation:fadeIn .25s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-    header {
-        text-align: center;
-        padding: 20px 10px;
-        font-size: 28px;
-        font-weight: bold;
-        background: #161b22;
-        color: #58a6ff;
-        box-shadow: 0 0 10px #000;
-    }
+    .modal{background:#0b1220;padding:16px;border-radius:14px;width:90%;max-width:380px;animation:pop .3s ease}
+    @keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
 
-    .container {
-        max-width: 400px;
-        margin: 20px auto;
-        background: #161b22;
-        border-radius: 12px;
-        padding: 15px;
-        box-shadow: 0 0 18px rgba(0,0,0,0.4);
-    }
+    input,textarea,button{width:100%;margin-top:8px;padding:10px;border-radius:8px;background:#ffffff05;border:1px solid #ffffff20;color:#fff;font-size:15px}
+    button{cursor:pointer}
+    .btn-primary{background:#06b6d4;color:#000;font-weight:600;border:0}
+    .btn-del{background:#ff4747;color:#fff;border:0;margin-top:4px}
 
-    .month-control {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        font-size: 20px;
-    }
-
-    .btn-nav {
-        background: #21262d;
-        border: 1px solid #30363d;
-        padding: 5px 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        color: #58a6ff;
-        transition: 0.2s;
-    }
-
-    .btn-nav:hover {
-        background: #30363d;
-    }
-
-    .calendar {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 10px;
-        text-align: center;
-    }
-
-    .day-name {
-        font-size: 13px;
-        color: #8b949e;
-    }
-
-    .day {
-        padding: 10px;
-        background: #21262d;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    .day:hover {
-        background: #30363d;
-    }
-
-    .today {
-        border: 2px solid #58a6ff;
-    }
-
-    .has-client {
-        background: #238636 !important;
-        color: #fff;
-    }
-
-    /* MODAL */
-    .modal-bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.7);
-        display: none;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal {
-        background: #161b22;
-        padding: 20px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 350px;
-        box-shadow: 0 0 10px #000;
-        animation: pop 0.2s ease-out;
-    }
-
-    @keyframes pop {
-        from { transform: scale(0.8); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
-
-    input, textarea {
-        width: 100%;
-        padding: 10px;
-        margin: 8px 0;
-        border-radius: 8px;
-        border: 1px solid #30363d;
-        background: #0d1117;
-        color: #e6e6e6;
-    }
-
-    button {
-        width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 10px;
-        background: #238636;
-        color: #fff;
-        font-size: 16px;
-        cursor: pointer;
-        margin-top: 10px;
-    }
-
-    button:hover {
-        background: #2ea043;
-    }
-</style>
+    .item-box{border:1px solid #ffffff15;padding:8px;border-radius:8px;margin-top:8px;background:#ffffff05}
+    .item-head{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600}
+    .icon{margin-right:6px}
+  </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a73e8">
 </head>
-
 <body>
 
-<header>Gestor IPTV</header>
+  <div class="calendar">
+    <h2 id="monthLabel"></h2>
+    <div class="cal-grid" id="dayNames"></div>
+    <div class="cal-grid" id="cells"></div>
+  </div>
 
-<div class="container">
-    <div class="month-control">
-        <div class="btn-nav" onclick="mudarMes(-1)">←</div>
-        <div id="mesTitulo"></div>
-        <div class="btn-nav" onclick="mudarMes(1)">→</div>
-    </div>
-
-    <div class="calendar" id="calendar"></div>
-</div>
-
-<!-- MODAL -->
-<div class="modal-bg" id="modalBg">
+  <!-- MODAL -->
+  <div class="modal-bg" id="modalBg">
     <div class="modal">
-        <h3 id="dataSelecionada"></h3>
+      <h3 id="modalDate"></h3>
+      <form id="clientForm">
+        <input id="clientName" placeholder="👤 Nome"/>
+        <input id="clientApp" placeholder="📺 App"/>
+        <input id="clientMAC" placeholder="🔌 MAC"/>
+        <input id="clientKey" placeholder="🔑 Key"/>
+        <textarea id="clientNote" rows="3" placeholder="📝 Observações"></textarea>
+        <button class="btn-primary" type="submit">Salvar Cliente</button>
+        <button type="button" onclick="closeModal()">Fechar</button>
+      </form>
 
-        <input id="nomeCliente" placeholder="Nome do Cliente">
-        <input id="appCliente" placeholder="Aplicativo (ex: XCIPTV)">
-        <input id="macCliente" placeholder="MAC (opcional)">
-        <input id="keyCliente" placeholder="KEY (opcional)">
-        <textarea id="obsCliente" rows="3" placeholder="Observações"></textarea>
-
-        <button onclick="salvarCliente()">Salvar</button>
-        <button style="background:#da3633;" onclick="apagarCliente()">Apagar</button>
-        <button style="background:#30363d;" onclick="fecharModal()">Fechar</button>
+      <div id="clientList" style="margin-top:15px;font-size:14px"></div>
     </div>
-</div>
+  </div>
 
 <script>
-let anoAtual = new Date().getFullYear();
-let mesAtual = new Date().getMonth();
-let diaSelecionado = null;
+const dayNames = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const dayNamesEl = document.getElementById('dayNames');
+const cellsEl = document.getElementById('cells');
+const monthLabel = document.getElementById('monthLabel');
+const modalBg=document.getElementById('modalBg');
+const modalDate=document.getElementById('modalDate');
+const clientList=document.getElementById('clientList');
+let view=new Date();
+let selected=null;
 
-function gerarCalendario() {
-    const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-    const calendario = document.getElementById("calendar");
-    const titulo = document.getElementById("mesTitulo");
+function keyForDate(d){return `iptv:${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function load(d){return JSON.parse(localStorage.getItem(keyForDate(d))||"[]")}
+function save(d,a){localStorage.setItem(keyForDate(d),JSON.stringify(a))}
 
-    calendario.innerHTML = "";
-    titulo.textContent = new Date(anoAtual, mesAtual).toLocaleString("pt-BR", { month: "long", year: "numeric" }).toUpperCase();
+function renderCalendar(){
+  dayNamesEl.innerHTML="";
+  dayNames.forEach(n=>{const e=document.createElement('div');e.textContent=n;e.style.textAlign='center';dayNamesEl.appendChild(e)});
 
-    diasSemana.forEach(d => {
-        const div = document.createElement("div");
-        div.textContent = d;
-        div.classList.add("day-name");
-        calendario.appendChild(div);
-    });
+  cellsEl.innerHTML="";
+  const start=new Date(view.getFullYear(),view.getMonth(),1);
+  const end=new Date(view.getFullYear(),view.getMonth()+1,0);
+  monthLabel.textContent=start.toLocaleString('pt-BR',{month:'long',year:'numeric'});
 
-    const primeiroDia = new Date(anoAtual, mesAtual, 1).getDay();
-    const ultimoDia = new Date(anoAtual, mesAtual + 1, 0).getDate();
+  const offset=start.getDay();
+  const total=offset+end.getDate();
+  const rows=Math.ceil(total/7);
+  let day=1-offset;
 
-    for (let i = 0; i < primeiroDia; i++) calendario.appendChild(document.createElement("div"));
-
-    for (let dia = 1; dia <= ultimoDia; dia++) {
-        const div = document.createElement("div");
-        div.textContent = dia;
-        div.classList.add("day");
-
-        const hoje = new Date();
-        if (dia === hoje.getDate() && mesAtual === hoje.getMonth() && anoAtual === hoje.getFullYear()) {
-            div.classList.add("today");
-        }
-
-        const chave = `${anoAtual}-${mesAtual}-${dia}`;
-        if (localStorage.getItem(chave)) {
-            div.classList.add("has-client");
-        }
-
-        div.onclick = () => abrirModal(dia);
-        calendario.appendChild(div);
+  for(let i=0;i<rows*7;i++){
+    const c=document.createElement('div');c.className='cell';
+    if(day>=1 && day<=end.getDate()){
+      const d=new Date(view.getFullYear(),view.getMonth(),day);
+      const dt=document.createElement('div');dt.className='date';dt.textContent=day;c.appendChild(dt);
+      const arr=load(d);
+      if(arr.length>0){const b=document.createElement('div');b.className='count';b.textContent=arr.length;c.appendChild(b)}
+      c.onclick=()=>openModal(d);
     }
+    cellsEl.appendChild(c);
+    day++;
+  }
 }
 
-function mudarMes(delta) {
-    mesAtual += delta;
-    if (mesAtual < 0) { mesAtual = 11; anoAtual--; }
-    if (mesAtual > 11) { mesAtual = 0; anoAtual++; }
-    gerarCalendario();
+function openModal(d){
+  selected=d;
+  modalDate.textContent="📅 " + d.toLocaleDateString('pt-BR');
+  renderClients();
+  modalBg.style.display='flex';
+}
+function closeModal(){modalBg.style.display='none'}
+
+function renderClients(){
+  const arr=load(selected);
+  if(arr.length===0){clientList.innerHTML='<div>Nenhum cliente.</div>';return}
+
+  clientList.innerHTML = arr.map((c,i)=>`
+    <div class='item-box'>
+      <div class='item-head'>
+        <span>👤 ${c.name}</span>
+        <button class='btn-del' onclick='delClient(${i})'>🗑️</button>
+      </div>
+      <div>📺 App: ${c.app||''}</div>
+      <div>🔌 MAC: ${c.mac||''}</div>
+      <div>🔑 Key: ${c.key||''}</div>
+      ${c.note?`<div>📝 ${c.note}</div>`:''}
+    </div>
+  `).join('');
 }
 
-function abrirModal(dia) {
-    diaSelecionado = dia;
-    document.getElementById("dataSelecionada").textContent = `${dia}/${mesAtual+1}/${anoAtual}`;
-
-    const chave = `${anoAtual}-${mesAtual}-${dia}`;
-    const dado = JSON.parse(localStorage.getItem(chave) || "{}");
-
-    document.getElementById("nomeCliente").value = dado.nome || "";
-    document.getElementById("appCliente").value = dado.app || "";
-    document.getElementById("macCliente").value = dado.mac || "";
-    document.getElementById("keyCliente").value = dado.key || "";
-    document.getElementById("obsCliente").value = dado.obs || "";
-
-    document.getElementById("modalBg").style.display = "flex";
+function delClient(i){
+  const arr=load(selected);
+  arr.splice(i,1);
+  save(selected,arr);
+  renderClients();
+  renderCalendar();
 }
 
-function fecharModal() {
-    document.getElementById("modalBg").style.display = "none";
-}
+document.getElementById('clientForm').onsubmit=function(e){
+  e.preventDefault();
+  const arr=load(selected);
+  arr.push({
+    name:clientName.value,
+    app:clientApp.value,
+    mac:clientMAC.value,
+    key:clientKey.value,
+    note:clientNote.value,
+    created:Date.now()
+  });
+  save(selected,arr);
+  this.reset();
+  renderClients();
+  renderCalendar();
+};
 
-function salvarCliente() {
-    const chave = `${anoAtual}-${mesAtual}-${diaSelecionado}`;
-    const dados = {
-        nome: document.getElementById("nomeCliente").value,
-        app: document.getElementById("appCliente").value,
-        mac: document.getElementById("macCliente").value,
-        key: document.getElementById("keyCliente").value,
-        obs: document.getElementById("obsCliente").value
-    };
-
-    localStorage.setItem(chave, JSON.stringify(dados));
-    fecharModal();
-    gerarCalendario();
-}
-
-function apagarCliente() {
-    const chave = `${anoAtual}-${mesAtual}-${diaSelecionado}`;
-    localStorage.removeItem(chave);
-    fecharModal();
-    gerarCalendario();
-}
-
-gerarCalendario();
+renderCalendar();
 </script>
-
+  <script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js")
+      .then(() => console.log("SW registrado"))
+      .catch(err => console.log("Erro SW:", err));
+  }
+  </script>
 </body>
 </html>
