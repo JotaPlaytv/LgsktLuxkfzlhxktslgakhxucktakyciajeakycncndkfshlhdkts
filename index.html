@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendário IPTV</title>
+
+  <!-- Manifest + theme color -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a73e8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 15px 0;
+    }
+
+    .calendar {
+      width: 90%;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 15px;
+      padding: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
+
+    th {
+      padding: 10px;
+      color: #1a73e8;
+      font-weight: bold;
+    }
+
+    td {
+      padding: 15px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: 0.2s;
+    }
+
+    td:hover {
+      background-color: #e6f0ff;
+    }
+
+    /* MODAL */
+    #modalBg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #modal {
+      background: white;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 15px;
+      animation: fadeZoom 0.25s ease-out;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+    }
+
+    @keyframes fadeZoom {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 12px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 5px;
+    }
+
+    #saveBtn {
+      background: #1a73e8;
+    }
+
+    #deleteBtn {
+      background: #d9534f;
+    }
+
+    #closeBtn {
+      background: #555;
+    }
+  </style>
+
+</head>
+<body>
+
+<h1>Calendário IPTV</h1>
+
+<div class="calendar">
+  <table border="0">
+    <thead>
+      <tr>
+        <th>Dom</th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th>
+      </tr>
+    </thead>
+    <tbody id="calendar-body"></tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div id="modalBg">
+  <div id="modal">
+    <h2 id="modalDate"></h2>
+
+    <label>Nome</label>
+    <input id="nome">
+
+    <label>App</label>
+    <input id="app">
+
+    <label>MAC</label>
+    <input id="mac">
+
+    <label>Key</label>
+    <input id="key">
+
+    <label>Observações</label>
+    <textarea id="obs"></textarea>
+
+    <button id="saveBtn">💾 Salvar</button>
+    <button id="deleteBtn">🗑️ Apagar</button>
+    <button id="closeBtn">✖️ Fechar</button>
+  </div>
+</div>
+
+<script>
+let selectedDate = "";
+renderCalendar();
+
+// MONTAR CALENDÁRIO
+function renderCalendar() {
+  const body = document.getElementById("calendar-body");
+  body.innerHTML = "";
+
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const lastDay = new Date(year, month + 1, 0).getDate();
+
+  let row = "<tr>";
+  let col = 0;
+
+  for(let i=0; i < firstDay; i++){
+    row += "<td></td>";
+    col++;
+  }
+
+  for(let d=1; d <= lastDay; d++){
+    if(col === 7){
+      row += "</tr><tr>";
+      col = 0;
+    }
+
+    row += `<td onclick="openModal(${d})">${d}</td>`;
+    col++;
+  }
+
+  row += "</tr>";
+  body.innerHTML = row;
+}
+
+// ABRIR MODAL
+function openModal(day){
+  selectedDate = day;
+  document.getElementById("modalDate").textContent = "Dia " + day;
+
+  let data = JSON.parse(localStorage.getItem("dia_"+day) || "{}");
+
+  document.getElementById("nome").value = data.nome || "";
+  document.getElementById("app").value = data.app || "";
+  document.getElementById("mac").value = data.mac || "";
+  document.getElementById("key").value = data.key || "";
+  document.getElementById("obs").value = data.obs || "";
+
+  document.getElementById("modalBg").style.display = "flex";
+}
+
+// SALVAR
+document.getElementById("saveBtn").onclick = () => {
+  const data = {
+    nome: nome.value,
+    app: app.value,
+    mac: mac.value,
+    key: key.value,
+    obs: obs.value
+  };
+
+  localStorage.setItem("dia_"+selectedDate, JSON.stringify(data));
+  alert("Salvo!");
+};
+
+// APAGAR
+document.getElementById("deleteBtn").onclick = () => {
+  localStorage.removeItem("dia_"+selectedDate);
+  nome.value = app.value = mac.value = key.value = obs.value = "";
+  alert("Apagado!");
+};
+
+// FECHAR
+document.getElementById("closeBtn").onclick = () => {
+  document.getElementById("modalBg").style.display = "none";
+};
+</script>
+
+<!-- SERVICE WORKER -->
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js")
+    .then(() => console.log("SW registrado"))
+    .catch(err => console.log("Erro SW:", err));
+}
+</script>
+
+</body>
+</html>

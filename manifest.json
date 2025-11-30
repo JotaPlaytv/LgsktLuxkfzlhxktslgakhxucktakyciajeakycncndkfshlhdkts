@@ -1,0 +1,20 @@
+{
+  "name": "Calendário IPTV",
+  "short_name": "IPTV",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a73e8",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192.png?text=IPTV",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512.png?text=IPTV",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
