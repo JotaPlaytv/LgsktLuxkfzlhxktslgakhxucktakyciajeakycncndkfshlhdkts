@@ -1,468 +1,276 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Calendário IPTV</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestor IPTV</title>
 
-  <!-- Mantém seu manifest + theme color -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1a73e8">
-
-  <style>
-    :root{
-      --bg:#f2f4f8; --card:#ffffff; --accent:#0066ff; --muted:#6b7280;
-      --danger:#ff4d4f;
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #0d1117;
+        color: #e6e6e6;
+        margin: 0;
+        padding: 0;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:system-ui,Roboto,Arial; background:var(--bg); color:#0b1724;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+
+    header {
+        text-align: center;
+        padding: 20px 10px;
+        font-size: 28px;
+        font-weight: bold;
+        background: #161b22;
+        color: #58a6ff;
+        box-shadow: 0 0 10px #000;
     }
-    header{padding:20px 18px 6px;text-align:center}
-    header h1{margin:0;font-size:26px}
-    .wrap{max-width:920px;margin:10px auto;padding:0 16px}
 
-    /* CONTROLES DO MES */
-    .controls{display:flex;justify-content:space-between;align-items:center;margin:12px 0;gap:12px}
-    .nav-btn{background:transparent;border:1px solid rgba(11,23,36,0.06);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-    .month-label{font-weight:800;font-size:18px;color:var(--accent)}
-
-    /* CARDS DO CARROSSEL */
-    .carousel-container{position:relative;overflow:hidden;border-radius:16px}
-    .carousel{display:flex;transition:transform .35s ease;touch-action:pan-y}
-    .month-card{min-width:100%;padding:18px}
-    .card{background:var(--card);padding:14px;border-radius:14px;box-shadow:0 8px 24px rgba(9,21,35,0.06);max-width:720px;margin:auto}
-
-    .month-title{text-align:center;font-weight:800;margin-bottom:14px;font-size:20px}
-    .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
-    .day-name{text-align:center;color:var(--accent);font-weight:700;font-size:13px}
-    .empty-cell{min-height:56px;border-radius:10px}
-    .day{
-      min-height:56px;border-radius:10px;background:#f7f9fc;display:flex;align-items:center;justify-content:center;
-      font-size:15px;cursor:pointer;position:relative;transition:transform .12s ease, box-shadow .12s ease;
+    .container {
+        max-width: 400px;
+        margin: 20px auto;
+        background: #161b22;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 0 18px rgba(0,0,0,0.4);
     }
-    .day:active{transform:scale(.98)}
-    .day.today{background:var(--accent);color:#fff;font-weight:800;box-shadow:0 6px 18px rgba(0,102,255,0.18)}
-    .dot{width:8px;height:8px;border-radius:50%;background:var(--danger);position:absolute;bottom:8px;left:50%;transform:translateX(-50%)}
-    .day .count-badge{position:absolute;right:8px;top:8px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:999px;font-size:11px}
 
-    /* POPUP */
-    .popup-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px}
-    .popup{width:100%;max-width:420px;background:var(--card);padding:16px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.2);animation:pop .28s ease}
-    @keyframes pop{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
-
-    .popup h3{margin:0 0 8px;font-size:18px}
-    .field{margin-top:8px}
-    input[type="text"], input[type="date"], textarea{
-      width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef6;background:#fbfdff;font-size:15px;
+    .month-control {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        font-size: 20px;
     }
-    textarea{min-height:72px;resize:vertical}
-    .row{display:flex;gap:8px}
-    .btn{display:inline-block;padding:10px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
-    .btn.save{background:var(--accent);color:#fff;width:100%}
-    .btn.close{background:#999;color:#fff}
-    .client-item{padding:8px;border-radius:8px;background:#f7f8fb;margin-top:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-    .client-info{font-size:14px}
-    .small{font-size:13px;color:var(--muted);margin-top:6px}
-    .muted{color:var(--muted);font-size:13px}
-    .btn-mini{border:0;padding:6px 8px;border-radius:8px;cursor:pointer}
 
-    /* footer / ajuda */
-    .hint{margin-top:14px;text-align:center;color:var(--muted);font-size:13px}
-
-    /* responsivo */
-    @media(min-width:900px){
-      .month-card{padding:30px}
-      .card{padding:20px}
+    .btn-nav {
+        background: #21262d;
+        border: 1px solid #30363d;
+        padding: 5px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #58a6ff;
+        transition: 0.2s;
     }
-  </style>
+
+    .btn-nav:hover {
+        background: #30363d;
+    }
+
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+        text-align: center;
+    }
+
+    .day-name {
+        font-size: 13px;
+        color: #8b949e;
+    }
+
+    .day {
+        padding: 10px;
+        background: #21262d;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .day:hover {
+        background: #30363d;
+    }
+
+    .today {
+        border: 2px solid #58a6ff;
+    }
+
+    .has-client {
+        background: #238636 !important;
+        color: #fff;
+    }
+
+    /* MODAL */
+    .modal-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal {
+        background: #161b22;
+        padding: 20px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 350px;
+        box-shadow: 0 0 10px #000;
+        animation: pop 0.2s ease-out;
+    }
+
+    @keyframes pop {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 8px;
+        border: 1px solid #30363d;
+        background: #0d1117;
+        color: #e6e6e6;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        background: #238636;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background: #2ea043;
+    }
+</style>
 </head>
+
 <body>
-  <header>
-    <h1>Calendário IPTV</h1>
-  </header>
 
-  <main class="wrap">
-    <div class="controls">
-      <button class="nav-btn" id="prevBtn">← Mês anterior</button>
-      <div class="month-label" id="monthLabel">—</div>
-      <button class="nav-btn" id="nextBtn">Próximo mês →</button>
+<header>Gestor IPTV</header>
+
+<div class="container">
+    <div class="month-control">
+        <div class="btn-nav" onclick="mudarMes(-1)">←</div>
+        <div id="mesTitulo"></div>
+        <div class="btn-nav" onclick="mudarMes(1)">→</div>
     </div>
 
-    <div class="carousel-container">
-      <div class="carousel" id="carousel"></div>
+    <div class="calendar" id="calendar"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+    <div class="modal">
+        <h3 id="dataSelecionada"></h3>
+
+        <input id="nomeCliente" placeholder="Nome do Cliente">
+        <input id="appCliente" placeholder="Aplicativo (ex: XCIPTV)">
+        <input id="macCliente" placeholder="MAC (opcional)">
+        <input id="keyCliente" placeholder="KEY (opcional)">
+        <textarea id="obsCliente" rows="3" placeholder="Observações"></textarea>
+
+        <button onclick="salvarCliente()">Salvar</button>
+        <button style="background:#da3633;" onclick="apagarCliente()">Apagar</button>
+        <button style="background:#30363d;" onclick="fecharModal()">Fechar</button>
     </div>
+</div>
 
-    <div class="hint">Toque no dia para ver/adicionar clientes. Arraste para mudar de mês também.</div>
-  </main>
+<script>
+let anoAtual = new Date().getFullYear();
+let mesAtual = new Date().getMonth();
+let diaSelecionado = null;
 
-  <!-- POPUP -->
-  <div class="popup-bg" id="popupBg" role="dialog" aria-modal="true">
-    <div class="popup" role="document">
-      <h3 id="popupTitle">Clientes — 00/00/0000</h3>
+function gerarCalendario() {
+    const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    const calendario = document.getElementById("calendar");
+    const titulo = document.getElementById("mesTitulo");
 
-      <div id="clientesList"></div>
+    calendario.innerHTML = "";
+    titulo.textContent = new Date(anoAtual, mesAtual).toLocaleString("pt-BR", { month: "long", year: "numeric" }).toUpperCase();
 
-      <div style="height:8px"></div>
+    diasSemana.forEach(d => {
+        const div = document.createElement("div");
+        div.textContent = d;
+        div.classList.add("day-name");
+        calendario.appendChild(div);
+    });
 
-      <div class="field">
-        <input type="text" id="inputName" placeholder="Nome do cliente (obrigatório)">
-      </div>
+    const primeiroDia = new Date(anoAtual, mesAtual, 1).getDay();
+    const ultimoDia = new Date(anoAtual, mesAtual + 1, 0).getDate();
 
-      <div class="field">
-        <input type="text" id="inputApp" placeholder="Nome do aplicativo (ex: SmartIPTV, XC, outro...)">
-      </div>
+    for (let i = 0; i < primeiroDia; i++) calendario.appendChild(document.createElement("div"));
 
-      <div class="field">
-        <input type="text" id="inputMac" placeholder="MAC ou KEY (obrigatório)">
-      </div>
+    for (let dia = 1; dia <= ultimoDia; dia++) {
+        const div = document.createElement("div");
+        div.textContent = dia;
+        div.classList.add("day");
 
-      <div class="field">
-        <input type="date" id="inputDue" placeholder="Data de vencimento">
-      </div>
-
-      <div class="field">
-        <textarea id="inputNote" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn save" id="saveBtn">💾 Salvar cliente</button>
-        <button class="btn close" id="closeBtn">✖ Fechar</button>
-      </div>
-
-      <div class="small">Você pode editar ou apagar clientes dentro da lista acima.</div>
-    </div>
-  </div>
-
-  <script>
-    // Estrutura: clientes armazenados em localStorage com chave 'iptv:YYYY-M-D' contendo array de objetos
-    const carousel = document.getElementById('carousel');
-    const monthLabel = document.getElementById('monthLabel');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-
-    const popupBg = document.getElementById('popupBg');
-    const popupTitle = document.getElementById('popupTitle');
-    const clientesList = document.getElementById('clientesList');
-
-    const inputName = document.getElementById('inputName');
-    const inputApp = document.getElementById('inputApp');
-    const inputMac = document.getElementById('inputMac');
-    const inputDue = document.getElementById('inputDue');
-    const inputNote = document.getElementById('inputNote');
-
-    const saveBtn = document.getElementById('saveBtn');
-    const closeBtn = document.getElementById('closeBtn');
-
-    // view date controla o mês/ano mostrado
-    let viewDate = new Date();
-    viewDate.setDate(1);
-
-    // para edição
-    let editingIndex = null;
-    let editingKey = null;
-    let selectedDay = null;
-
-    // carrega clientes do localStorage (objeto onde cada chave é 'YYYY-M-D' -> array)
-    function loadAllClients() {
-      try {
-        return JSON.parse(localStorage.getItem('iptv_clients') || '{}');
-      } catch (e) {
-        return {};
-      }
-    }
-    function saveAllClients(obj) {
-      localStorage.setItem('iptv_clients', JSON.stringify(obj));
-    }
-
-    function keyFor(ano, mes, dia) {
-      // mes: 1..12
-      return `${ano}-${mes}-${dia}`;
-    }
-
-    function renderMonths(centerDate) {
-      // renderiza 5 "cards" (mês anterior, atual, +3 próximos) para permitir swipe e navegação
-      carousel.innerHTML = '';
-      // vamos renderizar -1..+3 meses em relação ao viewDate
-      const base = new Date(centerDate.getFullYear(), centerDate.getMonth(), 1);
-      for (let offset = -1; offset <= 3; offset++) {
-        const d = new Date(base.getFullYear(), base.getMonth() + offset, 1);
-        const card = gerarMesCard(d.getFullYear(), d.getMonth()); // monthIndex 0..11
-        carousel.appendChild(card);
-      }
-      // ajustar transform para deixar o "mês atual" visível (posição 1)
-      carousel.style.transform = `translateX(-${100 * 1}%)`;
-      // atualizar label com mês central (viewDate)
-      monthLabel.textContent = base.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
-    }
-
-    function gerarMesCard(ano, monthIndex) {
-      const date = new Date(ano, monthIndex, 1);
-      const primeiroDia = date.getDay(); // 0..6
-      const ultimoDia = new Date(ano, monthIndex + 1, 0).getDate();
-      const cardWrap = document.createElement('div');
-      cardWrap.className = 'month-card';
-
-      const card = document.createElement('div');
-      card.className = 'card';
-
-      const titulo = document.createElement('div');
-      titulo.className = 'month-title';
-      titulo.textContent = date.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
-      card.appendChild(titulo);
-
-      const grid = document.createElement('div');
-      grid.className = 'calendar';
-
-      // nomes dias
-      const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-      diasSemana.forEach(n => {
-        const el = document.createElement('div');
-        el.className = 'day-name';
-        el.textContent = n;
-        grid.appendChild(el);
-      });
-
-      // espaços vazios
-      for (let i = 0; i < primeiroDia; i++) {
-        const el = document.createElement('div');
-        el.className = 'empty-cell';
-        grid.appendChild(el);
-      }
-
-      const hoje = new Date();
-      const allClients = loadAllClients();
-
-      for (let d = 1; d <= ultimoDia; d++) {
-        const el = document.createElement('div');
-        el.className = 'day';
-        el.textContent = d;
-
-        // destaque hoje
-        if (d === hoje.getDate() && monthIndex === hoje.getMonth() && ano === hoje.getFullYear()) {
-          el.classList.add('today');
+        const hoje = new Date();
+        if (dia === hoje.getDate() && mesAtual === hoje.getMonth() && anoAtual === hoje.getFullYear()) {
+            div.classList.add("today");
         }
 
-        // verificar se existem clientes nesse dia
-        const key = keyFor(ano, monthIndex + 1, d);
-        if (allClients[key] && allClients[key].length > 0) {
-          // contar e criar badge ou pontinho
-          const dot = document.createElement('div');
-          dot.className = 'dot';
-          el.appendChild(dot);
-
-          const badge = document.createElement('div');
-          badge.className = 'count-badge';
-          badge.textContent = allClients[key].length;
-          el.appendChild(badge);
+        const chave = `${anoAtual}-${mesAtual}-${dia}`;
+        if (localStorage.getItem(chave)) {
+            div.classList.add("has-client");
         }
 
-        el.addEventListener('click', () => abrirModalPara(d, monthIndex, ano));
-        grid.appendChild(el);
-      }
-
-      card.appendChild(grid);
-      cardWrap.appendChild(card);
-      return cardWrap;
+        div.onclick = () => abrirModal(dia);
+        calendario.appendChild(div);
     }
+}
 
-    // Navegação
-    prevBtn.addEventListener('click', () => {
-      viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
-      renderMonths(viewDate);
-    });
-    nextBtn.addEventListener('click', () => {
-      viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
-      renderMonths(viewDate);
-    });
+function mudarMes(delta) {
+    mesAtual += delta;
+    if (mesAtual < 0) { mesAtual = 11; anoAtual--; }
+    if (mesAtual > 11) { mesAtual = 0; anoAtual++; }
+    gerarCalendario();
+}
 
-    // Swipe / drag (touch)
-    let startX = 0;
-    let currentTranslate = 0;
-    let isDragging = false;
+function abrirModal(dia) {
+    diaSelecionado = dia;
+    document.getElementById("dataSelecionada").textContent = `${dia}/${mesAtual+1}/${anoAtual}`;
 
-    carousel.addEventListener('touchstart', (e) => {
-      startX = e.touches[0].clientX;
-      isDragging = true;
-      carousel.style.transition = 'none';
-    });
-    carousel.addEventListener('touchmove', (e) => {
-      if (!isDragging) return;
-      const dx = e.touches[0].clientX - startX;
-      carousel.style.transform = `translateX(calc(-100% + ${dx}px))`;
-    });
-    carousel.addEventListener('touchend', (e) => {
-      isDragging = false;
-      carousel.style.transition = 'transform .35s ease';
-      const dx = e.changedTouches[0].clientX - startX;
-      // se arrastou o suficiente (>50px) muda o mês
-      if (dx > 50) {
-        // arrastou para a direita -> ir para mês anterior
-        viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
-      } else if (dx < -50) {
-        // arrastou para a esquerda -> mes seguinte
-        viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
-      }
-      renderMonths(viewDate);
-    });
+    const chave = `${anoAtual}-${mesAtual}-${dia}`;
+    const dado = JSON.parse(localStorage.getItem(chave) || "{}");
 
-    // abrir modal para dia
-    function abrirModalPara(d, monthIndex, ano) {
-      selectedDay = d;
-      editingIndex = null;
-      editingKey = null;
-      inputName.value = '';
-      inputApp.value = '';
-      inputMac.value = '';
-      inputDue.value = '';
-      inputNote.value = '';
+    document.getElementById("nomeCliente").value = dado.nome || "";
+    document.getElementById("appCliente").value = dado.app || "";
+    document.getElementById("macCliente").value = dado.mac || "";
+    document.getElementById("keyCliente").value = dado.key || "";
+    document.getElementById("obsCliente").value = dado.obs || "";
 
-      popupTitle.textContent = `Clientes — ${String(d).padStart(2,'0')}/${String(monthIndex+1).padStart(2,'0')}/${ano}`;
-      carregarListaClientes(ano, monthIndex + 1, d);
-      popupBg.style.display = 'flex';
-    }
+    document.getElementById("modalBg").style.display = "flex";
+}
 
-    // carregar clientes no modal (listar com editar/apagar)
-    function carregarListaClientes(ano, mes, dia) {
-      clientesList.innerHTML = '';
-      const all = loadAllClients();
-      const key = keyFor(ano, mes, dia);
-      const arr = all[key] || [];
+function fecharModal() {
+    document.getElementById("modalBg").style.display = "none";
+}
 
-      if (arr.length === 0) {
-        clientesList.innerHTML = '<div class="small">Nenhum cliente neste dia.</div>';
-        return;
-      }
+function salvarCliente() {
+    const chave = `${anoAtual}-${mesAtual}-${diaSelecionado}`;
+    const dados = {
+        nome: document.getElementById("nomeCliente").value,
+        app: document.getElementById("appCliente").value,
+        mac: document.getElementById("macCliente").value,
+        key: document.getElementById("keyCliente").value,
+        obs: document.getElementById("obsCliente").value
+    };
 
-      arr.forEach((c, idx) => {
-        const item = document.createElement('div');
-        item.className = 'client-item';
+    localStorage.setItem(chave, JSON.stringify(dados));
+    fecharModal();
+    gerarCalendario();
+}
 
-        const info = document.createElement('div');
-        info.className = 'client-info';
-        let html = `<strong>${escapeHtml(c.name)}</strong><div class="muted">${escapeHtml(c.app || '')}</div>`;
-        html += `<div class="muted">MAC/KEY: ${escapeHtml(c.mac)}</div>`;
-        if (c.due) html += `<div class="muted">Vence: ${escapeHtml(c.due)}</div>`;
-        if (c.note) html += `<div class="muted">Obs: ${escapeHtml(c.note)}</div>`;
-        info.innerHTML = html;
+function apagarCliente() {
+    const chave = `${anoAtual}-${mesAtual}-${diaSelecionado}`;
+    localStorage.removeItem(chave);
+    fecharModal();
+    gerarCalendario();
+}
 
-        const actions = document.createElement('div');
-        actions.style.display = 'flex';
-        actions.style.flexDirection = 'column';
-        actions.style.gap = '6px';
+gerarCalendario();
+</script>
 
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn-mini';
-        editBtn.textContent = '✏️ Editar';
-        editBtn.addEventListener('click', () => {
-          // preparar edição: preencher campos e definir editingIndex
-          editingIndex = idx;
-          editingKey = key;
-          inputName.value = c.name;
-          inputApp.value = c.app || '';
-          inputMac.value = c.mac || '';
-          inputDue.value = c.due || '';
-          inputNote.value = c.note || '';
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'btn-mini';
-        delBtn.style.background = 'var(--danger)';
-        delBtn.style.color = '#fff';
-        delBtn.style.borderRadius = '8px';
-        delBtn.textContent = '🗑️ Apagar';
-        delBtn.addEventListener('click', () => {
-          // apagar cliente
-          const allC = loadAllClients();
-          allC[key].splice(idx, 1);
-          if (allC[key].length === 0) delete allC[key];
-          saveAllClients(allC);
-          carregarListaClientes(ano, mes, dia);
-          renderMonths(viewDate);
-        });
-
-        actions.appendChild(editBtn);
-        actions.appendChild(delBtn);
-
-        item.appendChild(info);
-        item.appendChild(actions);
-        clientesList.appendChild(item);
-      });
-    }
-
-    // salvar (novo ou editar)
-    saveBtn.addEventListener('click', () => {
-      const name = inputName.value.trim();
-      const app = inputApp.value.trim();
-      const mac = inputMac.value.trim();
-      const due = inputDue.value || '';
-      const note = inputNote.value.trim();
-
-      if (!name || !mac) {
-        alert('Preencha pelo menos o nome e o MAC/KEY do cliente.');
-        return;
-      }
-
-      const ano = selectedDay && editingKey ? Number(editingKey.split('-')[0]) : viewDate.getFullYear();
-      const mes = selectedDay && editingKey ? Number(editingKey.split('-')[1]) : viewDate.getMonth() + 1;
-      const dia = selectedDay && editingKey ? Number(editingKey.split('-')[2]) : selectedDay;
-
-      // se editingIndex definido -> editar entrada existente
-      const all = loadAllClients();
-      const key = keyFor(ano, mes, dia);
-
-      if (editingIndex !== null && editingKey === key) {
-        // atualizar
-        if (!all[key]) all[key] = [];
-        all[key][editingIndex] = { name, app, mac, due, note, created: Date.now() };
-        editingIndex = null;
-        editingKey = null;
-      } else {
-        // novo
-        if (!all[key]) all[key] = [];
-        all[key].push({ name, app, mac, due, note, created: Date.now() });
-      }
-
-      saveAllClients(all);
-
-      // limpar campos
-      inputName.value = '';
-      inputApp.value = '';
-      inputMac.value = '';
-      inputDue.value = '';
-      inputNote.value = '';
-
-      // recarregar lista e calendário
-      carregarListaClientes(ano, mes, dia);
-      renderMonths(viewDate);
-    });
-
-    closeBtn.addEventListener('click', () => {
-      popupBg.style.display = 'none';
-      editingIndex = null;
-      editingKey = null;
-    });
-
-    // helper para escapar HTML (evitar XSS simples)
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    // render inicial
-    renderMonths(viewDate);
-
-    // registra service worker (mantém seu sw.js ou service-worker.js existente)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').then(()=>console.log('SW registrado')).catch(()=>console.log('Erro registrando SW'));
-    }
-  </script>
 </body>
 </html>
