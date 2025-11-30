@@ -1,256 +1,332 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calendário IPTV</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendário IPTV</title>
 
-  <!-- Manifest + theme color -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1a73e8">
-
-  <style>
+<style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f5f5f5;
+        font-family: "Arial", sans-serif;
+        background: #f2f3f7;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        user-select: none;
     }
 
     h1 {
-      text-align: center;
-      padding: 15px 0;
+        text-align: center;
+        margin: 20px 0;
+        font-size: 26px;
+        font-weight: bold;
     }
 
+    /* CARROSSEL */
+    .carousel-container {
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .carousel {
+        display: flex;
+        transition: transform 0.35s ease-in-out;
+    }
+
+    /* CARD DO MÊS */
+    .month-card {
+        min-width: 100%;
+        box-sizing: border-box;
+        padding: 15px;
+    }
+
+    .card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        max-width: 380px;
+        margin: auto;
+    }
+
+    /* CABEÇALHO DO MÊS */
+    .month-title {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 10px;
+        font-size: 20px;
+    }
+
+    /* CALENDÁRIO */
     .calendar {
-      width: 90%;
-      margin: 20px auto;
-      background: #fff;
-      border-radius: 15px;
-      padding: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: center;
+    .day-name {
+        font-weight: bold;
+        color: #0066ff;
+        font-size: 14px;
     }
 
-    th {
-      padding: 10px;
-      color: #1a73e8;
-      font-weight: bold;
+    .day {
+        padding: 10px 0;
+        background: #f9f9f9;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 15px;
+        position: relative;
     }
 
-    td {
-      padding: 15px;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: 0.2s;
+    .day.today {
+        background: #0066ff;
+        color: #fff;
+        font-weight: bold;
+        box-shadow: 0 0 10px rgba(0,102,255,0.4);
     }
 
-    td:hover {
-      background-color: #e6f0ff;
+    /* BOLINHA DE CLIENTE */
+    .dot {
+        width: 7px;
+        height: 7px;
+        background: #ff3b3b;
+        border-radius: 50%;
+        position: absolute;
+        bottom: 5px;
+        left: 50%;
+        transform: translateX(-50%);
     }
 
-    /* MODAL */
-    #modalBg {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
+    /* POPUP */
+    .popup-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease;
     }
 
-    #modal {
-      background: white;
-      padding: 20px;
-      width: 90%;
-      max-width: 400px;
-      border-radius: 15px;
-      animation: fadeZoom 0.25s ease-out;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 
-    @keyframes fadeZoom {
-      from {
-        opacity: 0;
-        transform: scale(0.8);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
+    .popup {
+        background: #fff;
+        padding: 20px;
+        width: 85%;
+        max-width: 360px;
+        border-radius: 15px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        animation: slideUp 0.3s ease;
     }
 
-    label {
-      font-weight: bold;
+    @keyframes slideUp {
+        from { transform: translateY(40px); opacity: 0; }
+        to   { transform: translateY(0); opacity: 1; }
     }
 
-    input, select, textarea {
-      width: 100%;
-      padding: 8px;
-      margin: 5px 0 12px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+    .popup input, .popup select {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 15px;
     }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      cursor: pointer;
-      font-size: 16px;
-      margin-top: 5px;
+    .popup button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        background: #0066ff;
+        color: white;
+        font-weight: bold;
     }
 
-    #saveBtn {
-      background: #1a73e8;
+    .close-btn {
+        margin-top: 8px;
+        background: #999 !important;
     }
 
-    #deleteBtn {
-      background: #d9534f;
-    }
-
-    #closeBtn {
-      background: #555;
-    }
-  </style>
-
+</style>
 </head>
 <body>
 
 <h1>Calendário IPTV</h1>
 
-<div class="calendar">
-  <table border="0">
-    <thead>
-      <tr>
-        <th>Dom</th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th>
-      </tr>
-    </thead>
-    <tbody id="calendar-body"></tbody>
-  </table>
+<div class="carousel-container">
+    <div class="carousel" id="carousel">
+        <!-- Os meses serão criados por JS -->
+    </div>
 </div>
 
-<!-- MODAL -->
-<div id="modalBg">
-  <div id="modal">
-    <h2 id="modalDate"></h2>
+<!-- POPUP -->
+<div class="popup-bg" id="popup-bg">
+    <div class="popup">
+        <h2 id="popup-title">Clientes do dia</h2>
 
-    <label>Nome</label>
-    <input id="nome">
+        <div id="clientes-list"></div>
 
-    <label>App</label>
-    <input id="app">
+        <input id="nome" placeholder="Nome do cliente">
+        <select id="app">
+            <option>IPTV Smarters</option>
+            <option>XCIPTV</option>
+            <option>Outros</option>
+        </select>
+        <input id="mac" placeholder="MAC ou KEY">
 
-    <label>MAC</label>
-    <input id="mac">
-
-    <label>Key</label>
-    <input id="key">
-
-    <label>Observações</label>
-    <textarea id="obs"></textarea>
-
-    <button id="saveBtn">💾 Salvar</button>
-    <button id="deleteBtn">🗑️ Apagar</button>
-    <button id="closeBtn">✖️ Fechar</button>
-  </div>
+        <button onclick="salvarCliente()">Salvar</button>
+        <button class="close-btn" onclick="fecharPopup()">Fechar</button>
+    </div>
 </div>
 
 <script>
-let selectedDate = "";
-renderCalendar();
+let mesAtual = new Date().getMonth();
+let anoAtual = new Date().getFullYear();
+let clientes = JSON.parse(localStorage.getItem("clientes") || "{}");
 
-// MONTAR CALENDÁRIO
-function renderCalendar() {
-  const body = document.getElementById("calendar-body");
-  body.innerHTML = "";
+const carousel = document.getElementById("carousel");
+const popup = document.getElementById("popup-bg");
+let diaSelecionado = null;
+let mesSelecionado = null;
+let anoSelecionado = null;
 
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
+/* =============================
+      GERAR MESES
+==============================*/
+function gerarMes(ano, mes) {
+    const date = new Date(ano, mes, 1);
+    const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+    const primeiroDia = date.getDay();
 
-  const firstDay = new Date(year, month, 1).getDay();
-  const lastDay = new Date(year, month + 1, 0).getDate();
+    const card = document.createElement("div");
+    card.classList.add("month-card");
 
-  let row = "<tr>";
-  let col = 0;
+    const box = document.createElement("div");
+    box.classList.add("card");
 
-  for(let i=0; i < firstDay; i++){
-    row += "<td></td>";
-    col++;
-  }
+    const nomeMes = date.toLocaleString("pt-BR", { month: "long" });
+    const titulo = document.createElement("div");
+    titulo.classList.add("month-title");
+    titulo.textContent = `${nomeMes.toUpperCase()} ${ano}`;
+    box.appendChild(titulo);
 
-  for(let d=1; d <= lastDay; d++){
-    if(col === 7){
-      row += "</tr><tr>";
-      col = 0;
+    const cal = document.createElement("div");
+    cal.classList.add("calendar");
+
+    const diasSemana = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+    diasSemana.forEach(d => {
+        let div = document.createElement("div");
+        div.classList.add("day-name");
+        div.textContent = d;
+        cal.appendChild(div);
+    });
+
+    for (let i = 0; i < primeiroDia; i++) {
+        cal.appendChild(document.createElement("div"));
     }
 
-    row += `<td onclick="openModal(${d})">${d}</td>`;
-    col++;
-  }
+    for (let d = 1; d <= ultimoDia; d++) {
+        const div = document.createElement("div");
+        div.classList.add("day");
+        div.textContent = d;
 
-  row += "</tr>";
-  body.innerHTML = row;
+        const hoje = new Date();
+        if (d === hoje.getDate() && mes === hoje.getMonth() && ano === hoje.getFullYear()) {
+            div.classList.add("today");
+        }
+
+        let chave = `${ano}-${mes+1}-${d}`;
+        if (clientes[chave]) {
+            let dot = document.createElement("div");
+            dot.classList.add("dot");
+            div.appendChild(dot);
+        }
+
+        div.onclick = () => abrirPopup(d, mes, ano);
+        cal.appendChild(div);
+    }
+
+    box.appendChild(cal);
+    card.appendChild(box);
+    return card;
 }
 
-// ABRIR MODAL
-function openModal(day){
-  selectedDate = day;
-  document.getElementById("modalDate").textContent = "Dia " + day;
+/* =============================
+      RENDERIZAR 5 MESES
+==============================*/
+function render() {
+    carousel.innerHTML = "";
+    for (let i = -1; i <= 3; i++) {
+        carousel.appendChild(gerarMes(anoAtual, mesAtual + i));
+    }
+}
+render();
 
-  let data = JSON.parse(localStorage.getItem("dia_"+day) || "{}");
+/* =============================
+      POPUP
+==============================*/
+function abrirPopup(d, m, a) {
+    diaSelecionado = d;
+    mesSelecionado = m;
+    anoSelecionado = a;
 
-  document.getElementById("nome").value = data.nome || "";
-  document.getElementById("app").value = data.app || "";
-  document.getElementById("mac").value = data.mac || "";
-  document.getElementById("key").value = data.key || "";
-  document.getElementById("obs").value = data.obs || "";
+    document.getElementById("popup-title").textContent =
+        `Clientes do dia ${d}/${m+1}/${a}`;
 
-  document.getElementById("modalBg").style.display = "flex";
+    const chave = `${a}-${m+1}-${d}`;
+    const lista = clientes[chave] || [];
+
+    let html = "";
+    lista.forEach((c, idx) => {
+        html += `<div style="margin:6px 0; padding:6px; background:#eee; border-radius:8px;">
+                    <b>${c.nome}</b><br>
+                    App: ${c.app}<br>
+                    MAC/KEY: ${c.mac}
+                 </div>`;
+    });
+
+    document.getElementById("clientes-list").innerHTML =
+        html || "<i>Nenhum cliente neste dia.</i>";
+
+    popup.style.display = "flex";
 }
 
-// SALVAR
-document.getElementById("saveBtn").onclick = () => {
-  const data = {
-    nome: nome.value,
-    app: app.value,
-    mac: mac.value,
-    key: key.value,
-    obs: obs.value
-  };
+function fecharPopup() {
+    popup.style.display = "none";
+}
 
-  localStorage.setItem("dia_"+selectedDate, JSON.stringify(data));
-  alert("Salvo!");
-};
+function salvarCliente() {
+    const nome = document.getElementById("nome").value;
+    const app = document.getElementById("app").value;
+    const mac = document.getElementById("mac").value;
 
-// APAGAR
-document.getElementById("deleteBtn").onclick = () => {
-  localStorage.removeItem("dia_"+selectedDate);
-  nome.value = app.value = mac.value = key.value = obs.value = "";
-  alert("Apagado!");
-};
+    if (!nome || !mac) {
+        alert("Preencha nome e MAC/KEY!");
+        return;
+    }
 
-// FECHAR
-document.getElementById("closeBtn").onclick = () => {
-  document.getElementById("modalBg").style.display = "none";
-};
-</script>
+    const chave = `${anoSelecionado}-${mesSelecionado+1}-${diaSelecionado}`;
+    if (!clientes[chave]) clientes[chave] = [];
 
-<!-- SERVICE WORKER -->
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js")
-    .then(() => console.log("SW registrado"))
-    .catch(err => console.log("Erro SW:", err));
+    clientes[chave].push({ nome, app, mac });
+
+    localStorage.setItem("clientes", JSON.stringify(clientes));
+
+    fecharPopup();
+    render();
 }
 </script>
 
