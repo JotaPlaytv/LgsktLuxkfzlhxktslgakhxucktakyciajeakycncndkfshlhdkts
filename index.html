@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>IPTV - Calendário de Clientes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .calendar-nav button {
+            background: #667eea;
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .calendar-nav button:hover {
+            background: #5558dd;
+            transform: scale(1.1);
+        }
+
+        .calendar-nav h2 {
+            color: #1e293b;
+            font-size: 20px;
+        }
+
+        .calendar {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+            padding: 5px;
+            font-size: 12px;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .day:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .day.other-month {
+            opacity: 0.3;
+        }
+
+        .day.today {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .day.has-clients {
+            background: #fef3c7;
+            border-color: #fbbf24;
+        }
+
+        .day.today.has-clients {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .day-number {
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .day-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            padding: 1px 4px;
+            font-size: 8px;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+        .day.today .day-badge {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .modal-header h3 {
+            color: #1e293b;
+            font-size: 22px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #94a3b8;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #475569;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        /* Lista de clientes */
+        .clients-list {
+            margin-top: 20px;
+        }
+
+        .client-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .client-card h4 {
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .client-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        .client-info span {
+            display: block;
+        }
+
+        .client-info strong {
+            color: #475569;
+        }
+
+        .client-obs {
+            font-size: 13px;
+            color: #64748b;
+            font-style: italic;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .client-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .client-actions button {
+            flex: 1;
+            padding: 8px;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state svg {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .calendar {
+                padding: 12px;
+            }
+
+            .weekday {
+                font-size: 11px;
+                padding: 4px;
+            }
+
+            .days {
+                gap: 4px;
+            }
+
+            .weekdays {
+                gap: 4px;
+            }
+
+            .day {
+                padding: 2px;
+                border-radius: 8px;
+            }
+
+            .day-number {
+                font-size: 13px;
+            }
+
+            .day-badge {
+                font-size: 7px;
+                padding: 1px 3px;
+                bottom: 1px;
+                right: 1px;
+            }
+
+            .client-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .day-number {
+                font-size: 12px;
+            }
+
+            .weekday {
+                font-size: 10px;
+                padding: 3px;
+            }
+
+            .days {
+                gap: 3px;
+            }
+
+            .weekdays {
+                gap: 3px;
+            }
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal.active .modal-content {
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+    <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea'/%3E%3Cstop offset='100%25' style='stop-color:%23764ba2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='192' height='192' fill='url(%23grad)'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle' fill='white'%3E📺%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📺 IPTV CLIENTESer</h1>
+            <p>Gerencie seus clientes de forma profissional</p>
+        </div>
+
+        <div class="calendar-nav">
+            <button onclick="previousMonth()">‹</button>
+            <h2 id="currentMonth"></h2>
+            <button onclick="nextMonth()">›</button>
+        </div>
+
+        <div class="calendar">
+            <div class="weekdays">
+                <div class="weekday">Dom</div>
+                <div class="weekday">Seg</div>
+                <div class="weekday">Ter</div>
+                <div class="weekday">Qua</div>
+                <div class="weekday">Qui</div>
+                <div class="weekday">Sex</div>
+                <div class="weekday">Sáb</div>
+            </div>
+            <div class="days" id="calendarDays"></div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Clientes - 01/01/2024</h3>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+
+            <form id="clientForm" onsubmit="saveClient(event)">
+                <div class="form-group">
+                    <label>👤 Nome do Cliente *</label>
+                    <input type="text" id="clientName" required placeholder="Ex: João Silva">
+                </div>
+
+                <div class="form-group">
+                    <label>📱 Aplicativo *</label>
+                    <select id="clientApp" required>
+                        <option value="">Selecione...</option>
+                        <option value="PLAYSIM">PLAYSIM</option>
+                        <option value="IBO">IBO</option>
+                        <option value="CLOUDDY">CLOUDDY</option>
+                        <option value="OTT Navigator">OTT Navigator</option>
+                        <option value="Smart IPTV">Smart IPTV</option>
+                        <option value="Perfect Player">Perfect Player</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>🔑 MAC Address</label>
+                    <input type="text" id="clientMac" placeholder="Ex: 00:1A:2B:3C:4D:5E">
+                </div>
+
+                <div class="form-group">
+                    <label>🗝️ Key/Login</label>
+                    <input type="text" id="clientKey" placeholder="Ex: 123456">
+                </div>
+
+                <div class="form-group">
+                    <label>💰 Valor do Plano *</label>
+                    <input type="text" id="clientValue" required placeholder="Ex: R$ 50,00">
+                </div>
+
+                <div class="form-group">
+                    <label>📝 Observações</label>
+                    <textarea id="clientObs" placeholder="Anotações adicionais sobre o cliente..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">💾 Salvar Cliente</button>
+                </div>
+            </form>
+
+            <div class="clients-list" id="clientsList"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let selectedDate = null;
+        let clients = {};
+        let editingClientId = null;
+
+        // Carrega dados do localStorage
+        function loadData() {
+            const saved = localStorage.getItem('iptv_clients');
+            if (saved) {
+                clients = JSON.parse(saved);
+            }
+        }
+
+        // Salva dados no localStorage
+        function saveData() {
+            localStorage.setItem('iptv_clients', JSON.stringify(clients));
+        }
+
+        // Renderiza o calendário
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // Atualiza título
+            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                              'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+
+            // Primeiro dia do mês
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            const calendarDays = document.getElementById('calendarDays');
+            calendarDays.innerHTML = '';
+
+            const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+            // Dias do mês anterior
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const dayDiv = createDayElement(day, true, false);
+                calendarDays.appendChild(dayDiv);
+            }
+
+            // Dias do mês atual
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = isCurrentMonth && day === today.getDate();
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const hasClients = clients[dateKey] && clients[dateKey].length > 0;
+                
+                const dayDiv = createDayElement(day, false, isToday, hasClients, dateKey);
+                calendarDays.appendChild(dayDiv);
+            }
+
+            // Dias do próximo mês
+            const totalCells = calendarDays.children.length;
+            const remainingCells = 42 - totalCells; // 6 semanas * 7 dias
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayDiv = createDayElement(day, true, false);
+                calendarDays.appendChild(dayDiv);
+            }
+        }
+
+        function createDayElement(day, otherMonth, isToday, hasClients, dateKey) {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'day';
+            if (otherMonth) dayDiv.classList.add('other-month');
+            if (isToday) dayDiv.classList.add('today');
+            if (hasClients) dayDiv.classList.add('has-clients');
+
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = day;
+            dayDiv.appendChild(dayNumber);
+
+            if (hasClients) {
+                const badge = document.createElement('div');
+                badge.className = 'day-badge';
+                badge.textContent = clients[dateKey].length;
+                dayDiv.appendChild(badge);
+            }
+
+            if (!otherMonth) {
+                dayDiv.onclick = () => openModal(dateKey);
+            }
+
+            return dayDiv;
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function openModal(dateKey) {
+            selectedDate = dateKey;
+            const [year, month, day] = dateKey.split('-');
+            document.getElementById('modalTitle').textContent = `Clientes - ${day}/${month}/${year}`;
+            
+            // Limpa formulário
+            document.getElementById('clientForm').reset();
+            editingClientId = null;
+            
+            // Renderiza lista de clientes
+            renderClientsList();
+            
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            selectedDate = null;
+            editingClientId = null;
+        }
+
+        function saveClient(event) {
+            event.preventDefault();
+
+            const client = {
+                id: editingClientId || Date.now(),
+                name: document.getElementById('clientName').value,
+                app: document.getElementById('clientApp').value,
+                mac: document.getElementById('clientMac').value,
+                key: document.getElementById('clientKey').value,
+                value: document.getElementById('clientValue').value,
+                obs: document.getElementById('clientObs').value
+            };
+
+            if (!clients[selectedDate]) {
+                clients[selectedDate] = [];
+            }
+
+            if (editingClientId) {
+                // Editar cliente existente
+                const index = clients[selectedDate].findIndex(c => c.id === editingClientId);
+                clients[selectedDate][index] = client;
+            } else {
+                // Novo cliente
+                clients[selectedDate].push(client);
+            }
+
+            saveData();
+            renderCalendar();
+            renderClientsList();
+            document.getElementById('clientForm').reset();
+            editingClientId = null;
+        }
+
+        function renderClientsList() {
+            const listDiv = document.getElementById('clientsList');
+            
+            if (!clients[selectedDate] || clients[selectedDate].length === 0) {
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        <p>Nenhum cliente cadastrado nesta data</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listDiv.innerHTML = '<h3 style="margin-bottom: 15px; color: #1e293b;">📋 Clientes Cadastrados</h3>';
+            
+            clients[selectedDate].forEach(client => {
+                const card = document.createElement('div');
+                card.className = 'client-card';
+                card.innerHTML = `
+                    <h4>👤 ${client.name}</h4>
+                    <div class="client-info">
+                        <span><strong>📱 App:</strong> ${client.app}</span>
+                        <span><strong>💰 Valor:</strong> ${client.value}</span>
+                        ${client.mac ? `<span><strong>🔑 MAC:</strong> ${client.mac}</span>` : ''}
+                        ${client.key ? `<span><strong>🗝️ Key:</strong> ${client.key}</span>` : ''}
+                    </div>
+                    ${client.obs ? `<div class="client-obs">📝 ${client.obs}</div>` : ''}
+                    <div class="client-actions">
+                        <button class="btn btn-primary" onclick="editClient(${client.id})">✏️ Editar</button>
+                        <button class="btn btn-danger" onclick="deleteClient(${client.id})">🗑️ Excluir</button>
+                    </div>
+                `;
+                listDiv.appendChild(card);
+            });
+        }
+
+        function editClient(clientId) {
+            const client = clients[selectedDate].find(c => c.id === clientId);
+            if (!client) return;
+
+            editingClientId = clientId;
+            document.getElementById('clientName').value = client.name;
+            document.getElementById('clientApp').value = client.app;
+            document.getElementById('clientMac').value = client.mac || '';
+            document.getElementById('clientKey').value = client.key || '';
+            document.getElementById('clientValue').value = client.value;
+            document.getElementById('clientObs').value = client.obs || '';
+
+            // Scroll para o formulário
+            document.getElementById('clientForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteClient(clientId) {
+            if (confirm('⚠️ Tem certeza que deseja excluir este cliente?')) {
+                clients[selectedDate] = clients[selectedDate].filter(c => c.id !== clientId);
+                
+                // Remove a data se não tiver mais clientes
+                if (clients[selectedDate].length === 0) {
+                    delete clients[selectedDate];
+                }
+                
+                saveData();
+                renderCalendar();
+                renderClientsList();
+            }
+        }
+
+        // Inicializa
+        loadData();
+        renderCalendar();
+
+        // Fecha modal ao clicar fora
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') {
+                closeModal();
+            }
+        });
+    </script>
+    <script>
+// Registra o Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(function(registration) {
+                console.log('✅ Service Worker registrado:', registration.scope);
+            })
+            .catch(function(error) {
+                console.log('❌ Erro ao registrar Service Worker:', error);
+            });
+    });
+}
+</script>
+</body>
+</html>
