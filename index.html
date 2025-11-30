@@ -1,334 +1,468 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calendário IPTV</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calendário IPTV</title>
 
-<style>
-    body {
-        font-family: "Arial", sans-serif;
-        background: #f2f3f7;
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
-        user-select: none;
-    }
+  <!-- Mantém seu manifest + theme color -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a73e8">
 
-    h1 {
-        text-align: center;
-        margin: 20px 0;
-        font-size: 26px;
-        font-weight: bold;
+  <style>
+    :root{
+      --bg:#f2f4f8; --card:#ffffff; --accent:#0066ff; --muted:#6b7280;
+      --danger:#ff4d4f;
     }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,Roboto,Arial; background:var(--bg); color:#0b1724;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    header{padding:20px 18px 6px;text-align:center}
+    header h1{margin:0;font-size:26px}
+    .wrap{max-width:920px;margin:10px auto;padding:0 16px}
 
-    /* CARROSSEL */
-    .carousel-container {
-        width: 100%;
-        overflow: hidden;
-        position: relative;
-    }
+    /* CONTROLES DO MES */
+    .controls{display:flex;justify-content:space-between;align-items:center;margin:12px 0;gap:12px}
+    .nav-btn{background:transparent;border:1px solid rgba(11,23,36,0.06);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    .month-label{font-weight:800;font-size:18px;color:var(--accent)}
 
-    .carousel {
-        display: flex;
-        transition: transform 0.35s ease-in-out;
-    }
+    /* CARDS DO CARROSSEL */
+    .carousel-container{position:relative;overflow:hidden;border-radius:16px}
+    .carousel{display:flex;transition:transform .35s ease;touch-action:pan-y}
+    .month-card{min-width:100%;padding:18px}
+    .card{background:var(--card);padding:14px;border-radius:14px;box-shadow:0 8px 24px rgba(9,21,35,0.06);max-width:720px;margin:auto}
 
-    /* CARD DO MÊS */
-    .month-card {
-        min-width: 100%;
-        box-sizing: border-box;
-        padding: 15px;
+    .month-title{text-align:center;font-weight:800;margin-bottom:14px;font-size:20px}
+    .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+    .day-name{text-align:center;color:var(--accent);font-weight:700;font-size:13px}
+    .empty-cell{min-height:56px;border-radius:10px}
+    .day{
+      min-height:56px;border-radius:10px;background:#f7f9fc;display:flex;align-items:center;justify-content:center;
+      font-size:15px;cursor:pointer;position:relative;transition:transform .12s ease, box-shadow .12s ease;
     }
-
-    .card {
-        background: #fff;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        max-width: 380px;
-        margin: auto;
-    }
-
-    /* CABEÇALHO DO MÊS */
-    .month-title {
-        text-align: center;
-        font-weight: bold;
-        margin-bottom: 10px;
-        font-size: 20px;
-    }
-
-    /* CALENDÁRIO */
-    .calendar {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 8px;
-    }
-
-    .day-name {
-        font-weight: bold;
-        color: #0066ff;
-        font-size: 14px;
-    }
-
-    .day {
-        padding: 10px 0;
-        background: #f9f9f9;
-        border-radius: 10px;
-        text-align: center;
-        font-size: 15px;
-        position: relative;
-    }
-
-    .day.today {
-        background: #0066ff;
-        color: #fff;
-        font-weight: bold;
-        box-shadow: 0 0 10px rgba(0,102,255,0.4);
-    }
-
-    /* BOLINHA DE CLIENTE */
-    .dot {
-        width: 7px;
-        height: 7px;
-        background: #ff3b3b;
-        border-radius: 50%;
-        position: absolute;
-        bottom: 5px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
+    .day:active{transform:scale(.98)}
+    .day.today{background:var(--accent);color:#fff;font-weight:800;box-shadow:0 6px 18px rgba(0,102,255,0.18)}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--danger);position:absolute;bottom:8px;left:50%;transform:translateX(-50%)}
+    .day .count-badge{position:absolute;right:8px;top:8px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:999px;font-size:11px}
 
     /* POPUP */
-    .popup-bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        backdrop-filter: blur(4px);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        animation: fadeIn 0.3s ease;
-    }
+    .popup-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px}
+    .popup{width:100%;max-width:420px;background:var(--card);padding:16px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.2);animation:pop .28s ease}
+    @keyframes pop{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+    .popup h3{margin:0 0 8px;font-size:18px}
+    .field{margin-top:8px}
+    input[type="text"], input[type="date"], textarea{
+      width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef6;background:#fbfdff;font-size:15px;
     }
+    textarea{min-height:72px;resize:vertical}
+    .row{display:flex;gap:8px}
+    .btn{display:inline-block;padding:10px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .btn.save{background:var(--accent);color:#fff;width:100%}
+    .btn.close{background:#999;color:#fff}
+    .client-item{padding:8px;border-radius:8px;background:#f7f8fb;margin-top:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+    .client-info{font-size:14px}
+    .small{font-size:13px;color:var(--muted);margin-top:6px}
+    .muted{color:var(--muted);font-size:13px}
+    .btn-mini{border:0;padding:6px 8px;border-radius:8px;cursor:pointer}
 
-    .popup {
-        background: #fff;
-        padding: 20px;
-        width: 85%;
-        max-width: 360px;
-        border-radius: 15px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-        animation: slideUp 0.3s ease;
+    /* footer / ajuda */
+    .hint{margin-top:14px;text-align:center;color:var(--muted);font-size:13px}
+
+    /* responsivo */
+    @media(min-width:900px){
+      .month-card{padding:30px}
+      .card{padding:20px}
     }
-
-    @keyframes slideUp {
-        from { transform: translateY(40px); opacity: 0; }
-        to   { transform: translateY(0); opacity: 1; }
-    }
-
-    .popup input, .popup select {
-        width: 100%;
-        padding: 10px;
-        margin: 8px 0;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        font-size: 15px;
-    }
-
-    .popup button {
-        width: 100%;
-        padding: 12px;
-        margin-top: 10px;
-        border: none;
-        border-radius: 10px;
-        font-size: 16px;
-        background: #0066ff;
-        color: white;
-        font-weight: bold;
-    }
-
-    .close-btn {
-        margin-top: 8px;
-        background: #999 !important;
-    }
-
-</style>
+  </style>
 </head>
 <body>
+  <header>
+    <h1>Calendário IPTV</h1>
+  </header>
 
-<h1>Calendário IPTV</h1>
-
-<div class="carousel-container">
-    <div class="carousel" id="carousel">
-        <!-- Os meses serão criados por JS -->
+  <main class="wrap">
+    <div class="controls">
+      <button class="nav-btn" id="prevBtn">← Mês anterior</button>
+      <div class="month-label" id="monthLabel">—</div>
+      <button class="nav-btn" id="nextBtn">Próximo mês →</button>
     </div>
-</div>
 
-<!-- POPUP -->
-<div class="popup-bg" id="popup-bg">
-    <div class="popup">
-        <h2 id="popup-title">Clientes do dia</h2>
-
-        <div id="clientes-list"></div>
-
-        <input id="nome" placeholder="Nome do cliente">
-        <select id="app">
-            <option>IPTV Smarters</option>
-            <option>XCIPTV</option>
-            <option>Outros</option>
-        </select>
-        <input id="mac" placeholder="MAC ou KEY">
-
-        <button onclick="salvarCliente()">Salvar</button>
-        <button class="close-btn" onclick="fecharPopup()">Fechar</button>
+    <div class="carousel-container">
+      <div class="carousel" id="carousel"></div>
     </div>
-</div>
 
-<script>
-let mesAtual = new Date().getMonth();
-let anoAtual = new Date().getFullYear();
-let clientes = JSON.parse(localStorage.getItem("clientes") || "{}");
+    <div class="hint">Toque no dia para ver/adicionar clientes. Arraste para mudar de mês também.</div>
+  </main>
 
-const carousel = document.getElementById("carousel");
-const popup = document.getElementById("popup-bg");
-let diaSelecionado = null;
-let mesSelecionado = null;
-let anoSelecionado = null;
+  <!-- POPUP -->
+  <div class="popup-bg" id="popupBg" role="dialog" aria-modal="true">
+    <div class="popup" role="document">
+      <h3 id="popupTitle">Clientes — 00/00/0000</h3>
 
-/* =============================
-      GERAR MESES
-==============================*/
-function gerarMes(ano, mes) {
-    const date = new Date(ano, mes, 1);
-    const ultimoDia = new Date(ano, mes + 1, 0).getDate();
-    const primeiroDia = date.getDay();
+      <div id="clientesList"></div>
 
-    const card = document.createElement("div");
-    card.classList.add("month-card");
+      <div style="height:8px"></div>
 
-    const box = document.createElement("div");
-    box.classList.add("card");
+      <div class="field">
+        <input type="text" id="inputName" placeholder="Nome do cliente (obrigatório)">
+      </div>
 
-    const nomeMes = date.toLocaleString("pt-BR", { month: "long" });
-    const titulo = document.createElement("div");
-    titulo.classList.add("month-title");
-    titulo.textContent = `${nomeMes.toUpperCase()} ${ano}`;
-    box.appendChild(titulo);
+      <div class="field">
+        <input type="text" id="inputApp" placeholder="Nome do aplicativo (ex: SmartIPTV, XC, outro...)">
+      </div>
 
-    const cal = document.createElement("div");
-    cal.classList.add("calendar");
+      <div class="field">
+        <input type="text" id="inputMac" placeholder="MAC ou KEY (obrigatório)">
+      </div>
 
-    const diasSemana = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-    diasSemana.forEach(d => {
-        let div = document.createElement("div");
-        div.classList.add("day-name");
-        div.textContent = d;
-        cal.appendChild(div);
-    });
+      <div class="field">
+        <input type="date" id="inputDue" placeholder="Data de vencimento">
+      </div>
 
-    for (let i = 0; i < primeiroDia; i++) {
-        cal.appendChild(document.createElement("div"));
+      <div class="field">
+        <textarea id="inputNote" placeholder="Observações (opcional)"></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn save" id="saveBtn">💾 Salvar cliente</button>
+        <button class="btn close" id="closeBtn">✖ Fechar</button>
+      </div>
+
+      <div class="small">Você pode editar ou apagar clientes dentro da lista acima.</div>
+    </div>
+  </div>
+
+  <script>
+    // Estrutura: clientes armazenados em localStorage com chave 'iptv:YYYY-M-D' contendo array de objetos
+    const carousel = document.getElementById('carousel');
+    const monthLabel = document.getElementById('monthLabel');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    const popupBg = document.getElementById('popupBg');
+    const popupTitle = document.getElementById('popupTitle');
+    const clientesList = document.getElementById('clientesList');
+
+    const inputName = document.getElementById('inputName');
+    const inputApp = document.getElementById('inputApp');
+    const inputMac = document.getElementById('inputMac');
+    const inputDue = document.getElementById('inputDue');
+    const inputNote = document.getElementById('inputNote');
+
+    const saveBtn = document.getElementById('saveBtn');
+    const closeBtn = document.getElementById('closeBtn');
+
+    // view date controla o mês/ano mostrado
+    let viewDate = new Date();
+    viewDate.setDate(1);
+
+    // para edição
+    let editingIndex = null;
+    let editingKey = null;
+    let selectedDay = null;
+
+    // carrega clientes do localStorage (objeto onde cada chave é 'YYYY-M-D' -> array)
+    function loadAllClients() {
+      try {
+        return JSON.parse(localStorage.getItem('iptv_clients') || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+    function saveAllClients(obj) {
+      localStorage.setItem('iptv_clients', JSON.stringify(obj));
     }
 
-    for (let d = 1; d <= ultimoDia; d++) {
-        const div = document.createElement("div");
-        div.classList.add("day");
-        div.textContent = d;
+    function keyFor(ano, mes, dia) {
+      // mes: 1..12
+      return `${ano}-${mes}-${dia}`;
+    }
 
-        const hoje = new Date();
-        if (d === hoje.getDate() && mes === hoje.getMonth() && ano === hoje.getFullYear()) {
-            div.classList.add("today");
+    function renderMonths(centerDate) {
+      // renderiza 5 "cards" (mês anterior, atual, +3 próximos) para permitir swipe e navegação
+      carousel.innerHTML = '';
+      // vamos renderizar -1..+3 meses em relação ao viewDate
+      const base = new Date(centerDate.getFullYear(), centerDate.getMonth(), 1);
+      for (let offset = -1; offset <= 3; offset++) {
+        const d = new Date(base.getFullYear(), base.getMonth() + offset, 1);
+        const card = gerarMesCard(d.getFullYear(), d.getMonth()); // monthIndex 0..11
+        carousel.appendChild(card);
+      }
+      // ajustar transform para deixar o "mês atual" visível (posição 1)
+      carousel.style.transform = `translateX(-${100 * 1}%)`;
+      // atualizar label com mês central (viewDate)
+      monthLabel.textContent = base.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+    }
+
+    function gerarMesCard(ano, monthIndex) {
+      const date = new Date(ano, monthIndex, 1);
+      const primeiroDia = date.getDay(); // 0..6
+      const ultimoDia = new Date(ano, monthIndex + 1, 0).getDate();
+      const cardWrap = document.createElement('div');
+      cardWrap.className = 'month-card';
+
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const titulo = document.createElement('div');
+      titulo.className = 'month-title';
+      titulo.textContent = date.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+      card.appendChild(titulo);
+
+      const grid = document.createElement('div');
+      grid.className = 'calendar';
+
+      // nomes dias
+      const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      diasSemana.forEach(n => {
+        const el = document.createElement('div');
+        el.className = 'day-name';
+        el.textContent = n;
+        grid.appendChild(el);
+      });
+
+      // espaços vazios
+      for (let i = 0; i < primeiroDia; i++) {
+        const el = document.createElement('div');
+        el.className = 'empty-cell';
+        grid.appendChild(el);
+      }
+
+      const hoje = new Date();
+      const allClients = loadAllClients();
+
+      for (let d = 1; d <= ultimoDia; d++) {
+        const el = document.createElement('div');
+        el.className = 'day';
+        el.textContent = d;
+
+        // destaque hoje
+        if (d === hoje.getDate() && monthIndex === hoje.getMonth() && ano === hoje.getFullYear()) {
+          el.classList.add('today');
         }
 
-        let chave = `${ano}-${mes+1}-${d}`;
-        if (clientes[chave]) {
-            let dot = document.createElement("div");
-            dot.classList.add("dot");
-            div.appendChild(dot);
+        // verificar se existem clientes nesse dia
+        const key = keyFor(ano, monthIndex + 1, d);
+        if (allClients[key] && allClients[key].length > 0) {
+          // contar e criar badge ou pontinho
+          const dot = document.createElement('div');
+          dot.className = 'dot';
+          el.appendChild(dot);
+
+          const badge = document.createElement('div');
+          badge.className = 'count-badge';
+          badge.textContent = allClients[key].length;
+          el.appendChild(badge);
         }
 
-        div.onclick = () => abrirPopup(d, mes, ano);
-        cal.appendChild(div);
+        el.addEventListener('click', () => abrirModalPara(d, monthIndex, ano));
+        grid.appendChild(el);
+      }
+
+      card.appendChild(grid);
+      cardWrap.appendChild(card);
+      return cardWrap;
     }
 
-    box.appendChild(cal);
-    card.appendChild(box);
-    return card;
-}
-
-/* =============================
-      RENDERIZAR 5 MESES
-==============================*/
-function render() {
-    carousel.innerHTML = "";
-    for (let i = -1; i <= 3; i++) {
-        carousel.appendChild(gerarMes(anoAtual, mesAtual + i));
-    }
-}
-render();
-
-/* =============================
-      POPUP
-==============================*/
-function abrirPopup(d, m, a) {
-    diaSelecionado = d;
-    mesSelecionado = m;
-    anoSelecionado = a;
-
-    document.getElementById("popup-title").textContent =
-        `Clientes do dia ${d}/${m+1}/${a}`;
-
-    const chave = `${a}-${m+1}-${d}`;
-    const lista = clientes[chave] || [];
-
-    let html = "";
-    lista.forEach((c, idx) => {
-        html += `<div style="margin:6px 0; padding:6px; background:#eee; border-radius:8px;">
-                    <b>${c.nome}</b><br>
-                    App: ${c.app}<br>
-                    MAC/KEY: ${c.mac}
-                 </div>`;
+    // Navegação
+    prevBtn.addEventListener('click', () => {
+      viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+      renderMonths(viewDate);
+    });
+    nextBtn.addEventListener('click', () => {
+      viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+      renderMonths(viewDate);
     });
 
-    document.getElementById("clientes-list").innerHTML =
-        html || "<i>Nenhum cliente neste dia.</i>";
+    // Swipe / drag (touch)
+    let startX = 0;
+    let currentTranslate = 0;
+    let isDragging = false;
 
-    popup.style.display = "flex";
-}
+    carousel.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+      carousel.style.transition = 'none';
+    });
+    carousel.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      const dx = e.touches[0].clientX - startX;
+      carousel.style.transform = `translateX(calc(-100% + ${dx}px))`;
+    });
+    carousel.addEventListener('touchend', (e) => {
+      isDragging = false;
+      carousel.style.transition = 'transform .35s ease';
+      const dx = e.changedTouches[0].clientX - startX;
+      // se arrastou o suficiente (>50px) muda o mês
+      if (dx > 50) {
+        // arrastou para a direita -> ir para mês anterior
+        viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+      } else if (dx < -50) {
+        // arrastou para a esquerda -> mes seguinte
+        viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+      }
+      renderMonths(viewDate);
+    });
 
-function fecharPopup() {
-    popup.style.display = "none";
-}
+    // abrir modal para dia
+    function abrirModalPara(d, monthIndex, ano) {
+      selectedDay = d;
+      editingIndex = null;
+      editingKey = null;
+      inputName.value = '';
+      inputApp.value = '';
+      inputMac.value = '';
+      inputDue.value = '';
+      inputNote.value = '';
 
-function salvarCliente() {
-    const nome = document.getElementById("nome").value;
-    const app = document.getElementById("app").value;
-    const mac = document.getElementById("mac").value;
+      popupTitle.textContent = `Clientes — ${String(d).padStart(2,'0')}/${String(monthIndex+1).padStart(2,'0')}/${ano}`;
+      carregarListaClientes(ano, monthIndex + 1, d);
+      popupBg.style.display = 'flex';
+    }
 
-    if (!nome || !mac) {
-        alert("Preencha nome e MAC/KEY!");
+    // carregar clientes no modal (listar com editar/apagar)
+    function carregarListaClientes(ano, mes, dia) {
+      clientesList.innerHTML = '';
+      const all = loadAllClients();
+      const key = keyFor(ano, mes, dia);
+      const arr = all[key] || [];
+
+      if (arr.length === 0) {
+        clientesList.innerHTML = '<div class="small">Nenhum cliente neste dia.</div>';
         return;
+      }
+
+      arr.forEach((c, idx) => {
+        const item = document.createElement('div');
+        item.className = 'client-item';
+
+        const info = document.createElement('div');
+        info.className = 'client-info';
+        let html = `<strong>${escapeHtml(c.name)}</strong><div class="muted">${escapeHtml(c.app || '')}</div>`;
+        html += `<div class="muted">MAC/KEY: ${escapeHtml(c.mac)}</div>`;
+        if (c.due) html += `<div class="muted">Vence: ${escapeHtml(c.due)}</div>`;
+        if (c.note) html += `<div class="muted">Obs: ${escapeHtml(c.note)}</div>`;
+        info.innerHTML = html;
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.flexDirection = 'column';
+        actions.style.gap = '6px';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-mini';
+        editBtn.textContent = '✏️ Editar';
+        editBtn.addEventListener('click', () => {
+          // preparar edição: preencher campos e definir editingIndex
+          editingIndex = idx;
+          editingKey = key;
+          inputName.value = c.name;
+          inputApp.value = c.app || '';
+          inputMac.value = c.mac || '';
+          inputDue.value = c.due || '';
+          inputNote.value = c.note || '';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn-mini';
+        delBtn.style.background = 'var(--danger)';
+        delBtn.style.color = '#fff';
+        delBtn.style.borderRadius = '8px';
+        delBtn.textContent = '🗑️ Apagar';
+        delBtn.addEventListener('click', () => {
+          // apagar cliente
+          const allC = loadAllClients();
+          allC[key].splice(idx, 1);
+          if (allC[key].length === 0) delete allC[key];
+          saveAllClients(allC);
+          carregarListaClientes(ano, mes, dia);
+          renderMonths(viewDate);
+        });
+
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+
+        item.appendChild(info);
+        item.appendChild(actions);
+        clientesList.appendChild(item);
+      });
     }
 
-    const chave = `${anoSelecionado}-${mesSelecionado+1}-${diaSelecionado}`;
-    if (!clientes[chave]) clientes[chave] = [];
+    // salvar (novo ou editar)
+    saveBtn.addEventListener('click', () => {
+      const name = inputName.value.trim();
+      const app = inputApp.value.trim();
+      const mac = inputMac.value.trim();
+      const due = inputDue.value || '';
+      const note = inputNote.value.trim();
 
-    clientes[chave].push({ nome, app, mac });
+      if (!name || !mac) {
+        alert('Preencha pelo menos o nome e o MAC/KEY do cliente.');
+        return;
+      }
 
-    localStorage.setItem("clientes", JSON.stringify(clientes));
+      const ano = selectedDay && editingKey ? Number(editingKey.split('-')[0]) : viewDate.getFullYear();
+      const mes = selectedDay && editingKey ? Number(editingKey.split('-')[1]) : viewDate.getMonth() + 1;
+      const dia = selectedDay && editingKey ? Number(editingKey.split('-')[2]) : selectedDay;
 
-    fecharPopup();
-    render();
-}
-</script>
+      // se editingIndex definido -> editar entrada existente
+      const all = loadAllClients();
+      const key = keyFor(ano, mes, dia);
 
+      if (editingIndex !== null && editingKey === key) {
+        // atualizar
+        if (!all[key]) all[key] = [];
+        all[key][editingIndex] = { name, app, mac, due, note, created: Date.now() };
+        editingIndex = null;
+        editingKey = null;
+      } else {
+        // novo
+        if (!all[key]) all[key] = [];
+        all[key].push({ name, app, mac, due, note, created: Date.now() });
+      }
+
+      saveAllClients(all);
+
+      // limpar campos
+      inputName.value = '';
+      inputApp.value = '';
+      inputMac.value = '';
+      inputDue.value = '';
+      inputNote.value = '';
+
+      // recarregar lista e calendário
+      carregarListaClientes(ano, mes, dia);
+      renderMonths(viewDate);
+    });
+
+    closeBtn.addEventListener('click', () => {
+      popupBg.style.display = 'none';
+      editingIndex = null;
+      editingKey = null;
+    });
+
+    // helper para escapar HTML (evitar XSS simples)
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // render inicial
+    renderMonths(viewDate);
+
+    // registra service worker (mantém seu sw.js ou service-worker.js existente)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(()=>console.log('SW registrado')).catch(()=>console.log('Erro registrando SW'));
+    }
+  </script>
 </body>
 </html>
