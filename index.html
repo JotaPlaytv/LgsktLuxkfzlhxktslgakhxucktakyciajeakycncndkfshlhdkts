@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>🎥 IPTV CLIENTES😎</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d0000 100%);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(255, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border: 2px solid #ff0000;
+        }
+
+        .header-text {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .header h1 {
+            color: #ff0000;
+            font-size: 28px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        .header p {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-header {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+        }
+
+        .btn-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 0, 0, 0.5);
+        }
+
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1a1a1a;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+
+        .calendar-nav button {
+            background: #ff0000;
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+            box-shadow: 0 3px 10px rgba(255, 0, 0, 0.4);
+        }
+
+        .calendar-nav button:hover {
+            background: #cc0000;
+            transform: scale(1.1);
+        }
+
+        .calendar-nav h2 {
+            color: #fff;
+            font-size: 20px;
+        }
+
+        .calendar {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            color: #ff0000;
+            padding: 5px;
+            font-size: 12px;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            background: #0f0f0f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .day:hover {
+            border-color: #ff0000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+        }
+
+        .day.other-month {
+            opacity: 0.3;
+        }
+
+        .day.today {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: white;
+            border-color: #ff0000;
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.5);
+        }
+
+        .day.has-clients {
+            background: #2d0000;
+            border-color: #ff0000;
+        }
+
+        .day.today.has-clients {
+            background: linear-gradient(135deg, #ff0000, #990000);
+        }
+
+        .day-number {
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .day.other-month .day-number {
+            color: #666;
+        }
+
+        .day-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: #ff0000;
+            color: white;
+            border-radius: 6px;
+            padding: 1px 4px;
+            font-size: 8px;
+            font-weight: bold;
+            line-height: 1.2;
+            box-shadow: 0 2px 5px rgba(255, 0, 0, 0.5);
+        }
+
+        .day.today .day-badge {
+            background: white;
+            color: #ff0000;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 2px solid #333;
+            box-shadow: 0 10px 30px rgba(255, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #333;
+        }
+
+        .modal-header h3 {
+            color: #ff0000;
+            font-size: 22px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #ff0000;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #0f0f0f;
+            color: #fff;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ff0000;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 0, 0, 0.5);
+        }
+
+        .btn-danger {
+            background: #666;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #555;
+            transform: translateY(-2px);
+        }
+
+        .btn-copy {
+            background: #333;
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background: #444;
+            transform: translateY(-2px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        /* Lista de clientes */
+        .clients-list {
+            margin-top: 20px;
+        }
+
+        .client-card {
+            background: #0f0f0f;
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .client-card h4 {
+            color: #ff0000;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .client-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .client-info span {
+            display: block;
+        }
+
+        .client-info strong {
+            color: #ccc;
+        }
+
+        .client-obs {
+            font-size: 13px;
+            color: #999;
+            font-style: italic;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #333;
+        }
+
+        .client-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .client-actions button {
+            flex: 1;
+            padding: 8px;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state svg {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Notificação */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(255, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+            border: 2px solid #ff0000;
+        }
+
+        .notification.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* Message preview */
+        .message-preview {
+            background: #0f0f0f;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            white-space: pre-line;
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .calendar {
+                padding: 12px;
+            }
+
+            .weekday {
+                font-size: 11px;
+                padding: 4px;
+            }
+
+            .days {
+                gap: 4px;
+            }
+
+            .weekdays {
+                gap: 4px;
+            }
+
+            .day {
+                padding: 2px;
+                border-radius: 8px;
+            }
+
+            .day-number {
+                font-size: 13px;
+            }
+
+            .day-badge {
+                font-size: 7px;
+                padding: 1px 3px;
+                bottom: 1px;
+                right: 1px;
+            }
+
+            .client-info {
+                grid-template-columns: 1fr;
+            }
+
+            .header-buttons {
+                width: 100%;
+            }
+
+            .btn-header {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .notification {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .day-number {
+                font-size: 12px;
+            }
+
+            .weekday {
+                font-size: 10px;
+                padding: 3px;
+            }
+
+            .days {
+                gap: 3px;
+            }
+
+            .weekdays {
+                gap: 3px;
+            }
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal.active .modal-content {
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-text">
+                <h1>🎥 IPTV CLIENTES 😎</h1>
+                <p>Gerencie seus clientes de forma profissional</p>
+            </div>
+            <div class="header-buttons">
+                <button class="btn-header" onclick="showTodayExpiring()">
+                    🔔 Vencimentos Hoje
+                </button>
+                <button class="btn-header" onclick="showAllClients()">
+                    📋 Todos os Clientes
+                </button>
+                <button class="btn-header" onclick="showAddClientModal()">
+                    ➕ Adicionar Cliente
+                </button>
+            </div>
+        </div>
+
+        <div class="calendar-nav">
+            <button onclick="previousMonth()">‹</button>
+            <h2 id="currentMonth"></h2>
+            <button onclick="nextMonth()">›</button>
+        </div>
+
+        <div class="calendar">
+            <div class="weekdays">
+                <div class="weekday">Dom</div>
+                <div class="weekday">Seg</div>
+                <div class="weekday">Ter</div>
+                <div class="weekday">Qua</div>
+                <div class="weekday">Qui</div>
+                <div class="weekday">Sex</div>
+                <div class="weekday">Sáb</div>
+            </div>
+            <div class="days" id="calendarDays"></div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Clientes do Dia -->
+    <div class="modal" id="dayModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="dayModalTitle">Clientes - 01/01/2024</h3>
+                <button class="close-btn" onclick="closeDayModal()">×</button>
+            </div>
+            <div id="dayClientsList"></div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar/Editar Cliente -->
+    <div class="modal" id="clientModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="clientModalTitle">Adicionar Cliente</h3>
+                <button class="close-btn" onclick="closeClientModal()">×</button>
+            </div>
+
+            <form id="clientForm" onsubmit="saveClient(event)">
+                <div class="form-group">
+                    <label>👤 Nome do Cliente *</label>
+                    <input type="text" id="clientName" required placeholder="Ex: João Silva">
+                </div>
+
+                <div class="form-group">
+                    <label>📅 Dia de Vencimento (1-31) *</label>
+                    <input type="number" id="clientDueDay" required min="1" max="31" placeholder="Ex: 15">
+                </div>
+
+                <div class="form-group">
+                    <label>💰 Valor do Plano *</label>
+                    <input type="text" id="clientValue" required placeholder="Ex: 35,00">
+                </div>
+
+                <div class="form-group">
+                    <label>📱 Aplicativo *</label>
+                    <select id="clientApp" required>
+                        <option value="">Selecione...</option>
+                        <option value="XCIPTV">XCIPTV</option>
+                        <option value="IPTV Smarters">IPTV Smarters</option>
+                        <option value="TiviMate">TiviMate</option>
+                        <option value="OTT Navigator">OTT Navigator</option>
+                        <option value="Smart IPTV">Smart IPTV</option>
+                        <option value="Perfect Player">Perfect Player</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>🔑 MAC Address</label>
+                    <input type="text" id="clientMac" placeholder="Ex: 00:1A:2B:3C:4D:5E">
+                </div>
+
+                <div class="form-group">
+                    <label>🗝️ Key/Login</label>
+                    <input type="text" id="clientKey" placeholder="Ex: 123456">
+                </div>
+
+                <div class="form-group">
+                    <label>💳 Código de Pagamento (PIX/Boleto) *</label>
+                    <textarea id="clientPaymentCode" required placeholder="Cole aqui o código PIX ou linha digitável do boleto"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>📝 Observações</label>
+                    <textarea id="clientObs" placeholder="Anotações adicionais sobre o cliente..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">💾 Salvar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Todos os Clientes -->
+    <div class="modal" id="allClientsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Todos os Clientes</h3>
+                <button class="close-btn" onclick="closeAllClientsModal()">×</button>
+            </div>
+            <div id="allClientsList"></div>
+        </div>
+    </div>
+
+    <!-- Modal Vencimentos de Hoje -->
+    <div class="modal" id="expiringModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔔 Vencimentos de Hoje</h3>
+                <button class="close-btn" onclick="closeExpiringModal()">×</button>
+            </div>
+            <div id="expiringList"></div>
+        </div>
+    </div>
+
+    <!-- Notificação -->
+    <div class="notification" id="notification">
+        <button class="notification-close" onclick="closeNotification()">×</button>
+        <div id="notificationText"></div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let selectedDay = null;
+        let clients = [];
+        let editingClientId = null;
+
+        // Carrega dados
+        function loadData() {
+            const saved = localStorage.getItem('iptv_clients_v2');
+            if (saved) {
+                clients = JSON.parse(saved);
+            }
+        }
+
+        // Salva dados
+        function saveData() {
+            localStorage.setItem('iptv_clients_v2', JSON.stringify(clients));
+        }
+
+        // Renderiza calendário
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                              'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            const calendarDays = document.getElementById('calendarDays');
+            calendarDays.innerHTML = '';
+
+            const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+            // Dias do mês anterior
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const dayDiv = createDayElement(day, true, false, 0);
+                calendarDays.appendChild(dayDiv);
+            }
+
+            // Dias do mês atual
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = isCurrentMonth && day === today.getDate();
+                const clientsCount = getClientsForDay(day);
+                const dayDiv = createDayElement(day, false, isToday, clientsCount, day);
+                calendarDays.appendChild(dayDiv);
+            }
+
+            // Dias do próximo mês
+            const totalCells = calendarDays.children.length;
+            const remainingCells = 42 - totalCells;
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayDiv = createDayElement(day, true, false, 0);
+                calendarDays.appendChild(dayDiv);
+            }
+        }
+
+        function createDayElement(day, otherMonth, isToday, clientsCount, dayNumber) {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'day';
+            if (otherMonth) dayDiv.classList.add('other-month');
+            if (isToday) dayDiv.classList.add('today');
+            if (clientsCount > 0) dayDiv.classList.add('has-clients');
+
+            const dayNum = document.createElement('div');
+            dayNum.className = 'day-number';
+            dayNum.textContent = day;
+            dayDiv.appendChild(dayNum);
+
+            if (clientsCount > 0) {
+                const badge = document.createElement('div');
+                badge.className = 'day-badge';
+                badge.textContent = clientsCount;
+                dayDiv.appendChild(badge);
+            }
+
+            if (!otherMonth) {
+                dayDiv.onclick = () => showDayClients(dayNumber);
+            }
+
+            return dayDiv;
+        }
+
+        function getClientsForDay(day) {
+            return clients.filter(c => c.dueDay === day).length;
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        // Modal dia
+        function showDayClients(day) {
+            selectedDay = day;
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+            document.getElementById('dayModalTitle').textContent = 
+                `Clientes - ${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+            
+            renderDayClients();
+            document.getElementById('dayModal').classList.add('active');
+        }
+
+        function closeDayModal() {
+            document.getElementById('dayModal').classList.remove('active');
+        }
+
+        function renderDayClients() {
+            const list = document.getElementById('dayClientsList');
+            const dayClients = clients.filter(c => c.dueDay === selectedDay);
+
+            if (dayClients.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        <p>Nenhum cliente com vencimento neste dia</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = dayClients.map(client => `
+                <div class="client-card">
+                    <h4>👤 ${client.name}</h4>
+                    <div class="client-info">
+                        <span><strong>📱 App:</strong> ${client.app}</span>
+                        <span><strong>💰 Valor:</strong> R$ ${client.value}</span>
+                        ${client.mac ? `<span><strong>🔑 MAC:</strong> ${client.mac}</span>` : ''}
+                        ${client.key ? `<span><strong>🗝️ Key:</strong> ${client.key}</span>` : ''}
+                    </div>
+                    ${client.obs ? `<div class="client-obs">📝 ${client.obs}</div>` : ''}
+                    <div class="client-actions">
+                        <button class="btn btn-copy" onclick="copyMessage(${client.id})">📋 Copiar Mensagem</button>
+                        <button class="btn btn-primary" onclick="editClient(${client.id})">✏️ Editar</button>
+                        <button class="btn btn-danger" onclick="deleteClient(${client.id})">🗑️ Excluir</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Modal adicionar cliente
+        function showAddClientModal() {
+            editingClientId = null;
+            document.getElementById('clientModalTitle').textContent = 'Adicionar Cliente';
+            document.getElementById('clientForm').reset();
+            document.getElementById('clientModal').classList.add('active');
+        }
+
+        function closeClientModal() {
+            document.getElementById('clientModal').classList.remove('active');
+            editingClientId = null;
+        }
+
+        function saveClient(event) {
+            event.preventDefault();
+
+            const client = {
+                id: editingClientId || Date.now(),
+                name: document.getElementById('clientName').value,
+                dueDay: parseInt(document.getElementById('clientDueDay').value),
+                value: document.getElementById('clientValue').value,
+                app: document.getElementById('clientApp').value,
+                mac: document.getElementById('clientMac').value,
+                key: document.getElementById('clientKey').value,
+                paymentCode: document.getElementById('clientPaymentCode').value,
+                obs: document.getElementById('clientObs').value
+            };
+
+            if (editingClientId) {
+                const index = clients.findIndex(c => c.id === editingClientId);
+                clients[index] = client;
+            } else {
+                clients.push(client);
+            }
+
+            saveData();
+            renderCalendar();
+            closeClientModal();
+            
+            showNotification(editingClientId ? 
+                '✅ Cliente atualizado com sucesso!' : 
+                '✅ Cliente adicionado com sucesso!');
+        }
+
+        function editClient(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            editingClientId = clientId;
+            document.getElementById('clientModalTitle').textContent = 'Editar Cliente';
+            document.getElementById('clientName').value = client.name;
+            document.getElementById('clientDueDay').value = client.dueDay;
+            document.getElementById('clientValue').value = client.value;
+            document.getElementById('clientApp').value = client.app;
+            document.getElementById('clientMac').value = client.mac || '';
+            document.getElementById('clientKey').value = client.key || '';
+            document.getElementById('clientPaymentCode').value = client.paymentCode;
+            document.getElementById('clientObs').value = client.obs || '';
+
+            closeDayModal();
+            closeAllClientsModal();
+            closeExpiringModal();
+            document.getElementById('clientModal').classList.add('active');
+        }
+
+        function deleteClient(clientId) {
+            if (confirm('⚠️ Tem certeza que deseja excluir este cliente?')) {
+                clients = clients.filter(c => c.id !== clientId);
+                saveData();
+                renderCalendar();
+                renderDayClients();
+                showNotification('✅ Cliente excluído com sucesso!');
+            }
+        }
+
+        // Copiar mensagem
+        function copyMessage(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            const year = currentDate.getFullYear();
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(client.dueDay).padStart(2, '0');
+            const dueDate = `${day}/${month}/${year} 23:59:59`;
+
+            const message = `Olá *${client.name}*,
+
+*SUA CONTA EXPIRA EM BREVE!*
+
+Seu plano de *R$ ${client.value}* vence em:
+*${dueDate}*
+
+Seu usuário atual é *${client.name}*
+
+Evite o bloqueio automático do seu sinal
+
+Para renovar o seu plano agora, efetue o pagamento pelo código abaixo:
+
+${client.paymentCode}
+
+*Observações:* ${client.obs || 'SUPORTE TÉCNICO'}
+
+Por favor, nos envie o comprovante de pagamento assim que possível.
+
+É sempre um prazer te atender.`;
+
+            navigator.clipboard.writeText(message).then(() => {
+                showNotification('✅ Mensagem copiada! Cole no WhatsApp');
+            }).catch(() => {
+                alert('❌ Erro ao copiar. Tente novamente.');
+            });
+        }
+
+        // Modal todos os clientes
+        function showAllClients() {
+            const list = document.getElementById('allClientsList');
+
+            if (clients.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        <p>Nenhum cliente cadastrado ainda</p>
+                    </div>
+                `;
+                document.getElementById('allClientsModal').classList.add('active');
+                return;
+            }
+
+            const sortedClients = [...clients].sort((a, b) => a.dueDay - b.dueDay);
+
+            list.innerHTML = `
+                <div style="background: linear-gradient(135deg, #ff0000, #cc0000); color: white; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: center;">
+                    <h3 style="margin-bottom: 5px;">📊 Total de Clientes</h3>
+                    <p style="font-size: 32px; font-weight: bold; margin: 0;">${clients.length}</p>
+                </div>
+                ${sortedClients.map(client => `
+                    <div class="client-card">
+                        <h4>👤 ${client.name}</h4>
+                        <div class="client-info">
+                            <span><strong>📅 Vence dia:</strong> ${client.dueDay}</span>
+                            <span><strong>💰 Valor:</strong> R$ ${client.value}</span>
+                            <span><strong>📱 App:</strong> ${client.app}</span>
+                            ${client.mac ? `<span><strong>🔑 MAC:</strong> ${client.mac}</span>` : ''}
+                            ${client.key ? `<span><strong>🗝️ Key:</strong> ${client.key}</span>` : ''}
+                        </div>
+                        ${client.obs ? `<div class="client-obs">📝 ${client.obs}</div>` : ''}
+                        <div class="client-actions">
+                            <button class="btn btn-copy" onclick="copyMessage(${client.id})">📋 Copiar Mensagem</button>
+                            <button class="btn btn-primary" onclick="editClient(${client.id})">✏️ Editar</button>
+                            <button class="btn btn-danger" onclick="deleteClient(${client.id})">🗑️ Excluir</button>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+
+            document.getElementById('allClientsModal').classList.add('active');
+        }
+
+        function closeAllClientsModal() {
+            document.getElementById('allClientsModal').classList.remove('active');
+        }
+
+        // Vencimentos de hoje
+        function showTodayExpiring() {
+            const today = new Date().getDate();
+            const todayClients = clients.filter(c => c.dueDay === today);
+
+            const list = document.getElementById('expiringList');
+
+            if (todayClients.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p>Nenhum vencimento para hoje! 🎉</p>
+                    </div>
+                `;
+                document.getElementById('expiringModal').classList.add('active');
+                return;
+            }
+
+            list.innerHTML = `
+                <div style="background: linear-gradient(135deg, #ff0000, #cc0000); color: white; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: center;">
+                    <h3 style="margin-bottom: 5px;">🔔 Vencimentos Hoje</h3>
+                    <p style="font-size: 32px; font-weight: bold; margin: 0;">${todayClients.length}</p>
+                </div>
+                ${todayClients.map(client => `
+                    <div class="client-card">
+                        <h4>👤 ${client.name}</h4>
+                        <div class="client-info">
+                            <span><strong>📱 App:</strong> ${client.app}</span>
+                            <span><strong>💰 Valor:</strong> R$ ${client.value}</span>
+                            ${client.mac ? `<span><strong>🔑 MAC:</strong> ${client.mac}</span>` : ''}
+                            ${client.key ? `<span><strong>🗝️ Key:</strong> ${client.key}</span>` : ''}
+                        </div>
+                        ${client.obs ? `<div class="client-obs">📝 ${client.obs}</div>` : ''}
+                        <div class="client-actions">
+                            <button class="btn btn-copy" onclick="copyMessage(${client.id})">📋 Copiar Mensagem</button>
+                            <button class="btn btn-primary" onclick="editClient(${client.id})">✏️ Editar</button>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+
+            document.getElementById('expiringModal').classList.add('active');
+        }
+
+        function closeExpiringModal() {
+            document.getElementById('expiringModal').classList.remove('active');
+        }
+
+        // Notificação
+        function showNotification(text) {
+            const notification = document.getElementById('notification');
+            document.getElementById('notificationText').textContent = text;
+            notification.classList.add('active');
+
+            setTimeout(() => {
+                notification.classList.remove('active');
+            }, 3000);
+        }
+
+        function closeNotification() {
+            document.getElementById('notification').classList.remove('active');
+        }
+
+        // Verifica vencimentos ao carregar
+        function checkExpiringOnLoad() {
+            const today = new Date().getDate();
+            const todayClients = clients.filter(c => c.dueDay === today);
+
+            if (todayClients.length > 0) {
+                setTimeout(() => {
+                    showNotification(`🔔 Você tem ${todayClients.length} vencimento${todayClients.length > 1 ? 's' : ''} hoje!`);
+                }, 1000);
+            }
+        }
+
+        // Fecha modais ao clicar fora
+        document.getElementById('dayModal').addEventListener('click', (e) => {
+            if (e.target.id === 'dayModal') closeDayModal();
+        });
+
+        document.getElementById('clientModal').addEventListener('click', (e) => {
+            if (e.target.id === 'clientModal') closeClientModal();
+        });
+
+        document.getElementById('allClientsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'allClientsModal') closeAllClientsModal();
+        });
+
+        document.getElementById('expiringModal').addEventListener('click', (e) => {
+            if (e.target.id === 'expiringModal') closeExpiringModal();
+        });
+
+        // Registra Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(function(registration) {
+                        console.log('✅ Service Worker registrado');
+                    })
+                    .catch(function(error) {
+                        console.log('❌ Erro ao registrar Service Worker:', error);
+                    });
+            });
+        }
+
+        // Inicializa
+        loadData();
+        renderCalendar();
+        checkExpiringOnLoad();
+
+</script>
+</body>
+</html>
